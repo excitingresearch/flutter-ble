@@ -8,7 +8,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:flutter_reactive_ble_example/widgets.dart';
+import 'package:flutter_ble_moody/widgets.dart';
 
 void main() {
   var x = 0;

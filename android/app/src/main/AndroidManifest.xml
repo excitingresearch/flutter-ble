@@ -25,7 +25,7 @@
             android:usesPermissionFlags="neverForLocation" />
 
     <application
-        android:label="flutter_reactive_ble_example"
+        android:label="flutter_ble_moody"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="com.signify.hue.reactivebleexample.MainActivity"
