@@ -5,19 +5,33 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_ble_moody/widgets.dart';
 
 void main() {
-  var x = 0;
-  var period = const Duration(seconds: 10);
-  Timer.periodic(period, (arg) {
-    x = x + 1;
-    print(x);
-    FlutterBlue.instance.startScan(timeout: Duration(seconds: 1));
-  });
+  // var x = 0;
+  // var period = const Duration(milliseconds: 3500); // 4
+  // Timer.periodic(period, (arg) {
+  //   x = x + 1;
+  //   print(x);
+
+  //   try {
+  //     // code that may cause an exception
+  //     // FlutterBlue.instance.stopScan();
+
+  //     // sleep(Duration(milliseconds: 1000)); // 1
+
+  //     FlutterBlue.instance.startScan(
+  //         timeout:
+  //             Duration(milliseconds: 3000)); // timeout: Duration(seconds: 4)
+  //   } catch (e) {
+  //     // code that handles the exception
+  //     print(e);
+  //   }
+  // });
 
   runApp(FlutterBlueApp());
 }
@@ -45,7 +59,24 @@ String intToTimeLeft(int value) {
   return result;
 }
 
+String getNiceHexArray(List<int> bytes) {
+  return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]'
+      .toUpperCase();
+}
+
+String getNiceServiceData(Map<String, List<int>> data) {
+  if (data.isEmpty) {
+    return 'N/A';
+  }
+  List<String> res = [];
+  data.forEach((id, bytes) {
+    res.add('${id.toUpperCase()}: ${getNiceHexArray(bytes)}');
+  });
+  return res.join(', ');
+}
+
 parseManufacturerData(data) {
+  print(getNiceHexArray(data));
   var manufacturerData = Uint8List.fromList(new List<int>.from(data));
   //var pressure = ByteData.sublistView(manufacturerData, 6, 10);
   var temperature = ByteData.sublistView(manufacturerData, 4, 6);
@@ -120,7 +151,7 @@ class FindDevicesScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () =>
-            FlutterBlue.instance.startScan(timeout: Duration(seconds: 4)),
+            FlutterBlue.instance.startScan(), //timeout: Duration(seconds: 4)
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
@@ -156,6 +187,8 @@ class FindDevicesScreen extends StatelessWidget {
               ),
               StreamBuilder<List<ScanResult>>(
                 stream: FlutterBlue.instance.scanResults,
+                // stream: Stream.periodic(Duration(seconds: 2))
+                //     .asyncMap((_) => FlutterBlue.instance.scanResults),
                 initialData: [],
                 builder: (c, snapshot) => Column(
                   children: snapshot.data!
@@ -164,21 +197,44 @@ class FindDevicesScreen extends StatelessWidget {
                       .map(
                         (r) => ScanResultTile(
                           result: r,
-                          onTap: () {
-                            print(r.device.id.toString());
-                            print(
-                                'Data: ${r.advertisementData.serviceData["0000feaa-0000-1000-8000-00805f9b34fb"]}');
-                            // Pass it to our previous function
-                            parseManufacturerData(
-                                r.advertisementData.serviceData[
-                                    "0000feaa-0000-1000-8000-00805f9b34fb"]);
-                          }
-                          // () => Navigator.of(context)
-                          //     .push(MaterialPageRoute(builder: (context) {
-                          //   r.device.connect();
-                          //   return DeviceScreen(device: r.device);
-                          // }))
-                          ,
+                          onTap:
+                              // () {
+                              //   print(r.device.id.toString());
+                              //   print(
+                              //       'Data: ${r.advertisementData.serviceData["0000feaa-0000-1000-8000-00805f9b34fb"]}');
+                              //   // Pass it to our previous function
+                              //   parseManufacturerData(
+                              //       r.advertisementData.serviceData[
+                              //           "0000feaa-0000-1000-8000-00805f9b34fb"]);
+                              // }
+
+                              //     () async {
+                              //   print("CONNCERT");
+                              //   await r.device.connect();
+                              //   print("SERVICES");
+                              //   List<BluetoothService> services =
+                              //       await r.device.discoverServices();
+                              //   services.forEach((service) async {
+                              //     // do something with service
+                              //     print(service);
+
+                              //     // Reads all characteristics
+                              //     var characteristics = service.characteristics;
+                              //     for (BluetoothCharacteristic c
+                              //         in characteristics) {
+                              //       List<int> value = await c.read();
+                              //       print(value);
+                              //     }
+                              //   });
+
+                              //   print("SERVICES DONE");
+                              // }
+
+                              () => Navigator.of(context)
+                                  .push(MaterialPageRoute(builder: (context) {
+                            r.device.connect();
+                            return DeviceScreen(device: r.device);
+                          })),
                         ),
                       )
                       .toList(),
@@ -202,7 +258,7 @@ class FindDevicesScreen extends StatelessWidget {
             return FloatingActionButton(
                 child: Icon(Icons.search),
                 onPressed: () => FlutterBlue.instance
-                    .startScan(timeout: Duration(seconds: 4)));
+                    .startScan()); // timeout: Duration(seconds: 4)
           }
         },
       ),
