@@ -192,8 +192,9 @@ class FindDevicesScreen extends StatelessWidget {
                 initialData: [],
                 builder: (c, snapshot) => Column(
                   children: snapshot.data!
-                      .where(
-                          (r) => r.device.id.toString() == '34:85:18:05:47:96')
+                      .where((r) =>
+                          1 ==
+                          1) //r.device.id.toString() == '34:85:18:05:47:96')
                       .map(
                         (r) => ScanResultTile(
                           result: r,
