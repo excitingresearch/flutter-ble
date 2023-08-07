@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'dart:convert';
 
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,9 +19,7 @@ import 'package:flutter_ble_moody/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'package:location/location.dart';
 
 final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
@@ -81,8 +80,11 @@ class _FirstScreenState extends State<FirstScreen> {
     while (polling && _deviceIdController.text.isEmpty) {
       print("poll");
       try {
-        NFCTag tag =
-            await FlutterNfcKit.poll(); //timeout: Duration(milliseconds: 750)
+        NFCTag tag = await FlutterNfcKit.poll(
+            timeout: Duration(seconds: 3),
+            iosMultipleTagMessage: "Multiple tags found!",
+            iosAlertMessage:
+                "Scan your tag"); //timeout: Duration(milliseconds: 750)
         if (!polling) {
           return;
         }
@@ -139,6 +141,14 @@ class _FirstScreenState extends State<FirstScreen> {
           print("No moody device");
           final snackBar = SnackBar(content: Text("No MOODY device"));
           snackBarKeyNFC.currentState?.showSnackBar(snackBar);
+        } else {
+          if (Platform.isAndroid) {
+// Call finish() only once
+            await FlutterNfcKit.finish();
+          } else {
+// iOS only: show alert/error message on finish
+            await FlutterNfcKit.finish(iosAlertMessage: "Success");
+          }
         }
       } catch (e) {
         print('Error polling NFC: $e');
@@ -703,6 +713,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   int b = 255;
   double bat = 0.0;
 
+  List<double>? _gyroscopeValues = [0, 0, 0];
+
+  final _streamSubscriptions = <StreamSubscription<dynamic>>[];
+
+  // LocationData _currentPosition;
+
   StreamSubscription? subscription;
 
   final _txController = TextEditingController();
@@ -710,6 +726,31 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   void initState() {
     super.initState();
+
+    _streamSubscriptions.add(
+      gyroscopeEvents.listen(
+        (GyroscopeEvent event) {
+          setState(() {
+            _gyroscopeValues = <double>[event.x, event.y, event.z];
+          });
+        },
+        onError: (e) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return const AlertDialog(
+                  title: Text("Sensor Not Found"),
+                  content: Text(
+                      "It seems that your device doesn't support User Accelerometer Sensor"),
+                );
+              });
+        },
+        cancelOnError: true,
+      ),
+    );
+
+    // getLoc();
+
     connectToDevice();
   }
 
@@ -785,7 +826,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     'proximity': jsonEncode([
                       // {'id': 'a', 'distance': 0}
                     ]),
-                    'gyro': jsonEncode([4, 4, 4]),
+                    'gyro': jsonEncode(_gyroscopeValues),
                   }),
                 );
 
@@ -819,6 +860,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final gyroscope =
+        _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
+
     return ScaffoldMessenger(
       key: snackBarKeyC,
       child: Scaffold(
@@ -889,6 +933,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               Text('G: $g'),
               Text('B: $b'),
               Text('Battery: $bat'),
+              Text('Gyro: ${jsonEncode(_gyroscopeValues)}'),
               TextField(
                 controller: _txController,
                 decoration: InputDecoration(

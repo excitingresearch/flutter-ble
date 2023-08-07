@@ -51,5 +51,9 @@
 	<string>The app uses bluetooth to find, connect and transfer data between different devices</string>
 	<key>NFCReaderUsageDescription</key>
 <string>The app uses NFC to find, connect and transfer data between different media</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+<string>GPS is used for locating the moody decies</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+<string>GPS is used for locating the moody decies</string>
 </dict>
 </plist>
