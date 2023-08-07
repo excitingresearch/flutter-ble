@@ -775,9 +775,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final gyroscope =
-    //     _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
-
     return ScaffoldMessenger(
       key: snackBarKeyC,
       child: Scaffold(
@@ -839,29 +836,74 @@ class _DeviceScreenState extends State<DeviceScreen> {
             )
           ],
         ),
-        body: SingleChildScrollView(
+        body: Padding(
+          padding: EdgeInsets.all(10.0),
           child: Column(
             children: [
-              Text('Received Data: $receivedData'),
-              Text('Temp: $temp'),
-              Text('R: $r'),
-              Text('G: $g'),
-              Text('B: $b'),
-              Text('Battery: $bat'),
-              Text('Gyro: ${jsonEncode(_gyroscopeValues)}'),
-              Text('Position: ${(_currentPosition.toString())}'),
+              Expanded(
+                child: ListView(
+                  children: [
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.network_check),
+                        title: Text('Received Data'),
+                        subtitle: Text('$receivedData'),
+                      ),
+                    ),
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.thermostat_outlined),
+                        title: Text('Temp'),
+                        subtitle: Text('$temp °C'),
+                      ),
+                    ),
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.color_lens),
+                        title: Text('Color: '),
+                        subtitle: Text('R: $r, G: $g, B: $b'),
+                      ),
+                    ),
+                    //...More ListTile widgets for other values
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.location_on),
+                        title: Text('Position'),
+                        subtitle: Text(
+                            'Latitude: ${_currentPosition?.latitude} \nLongitude: ${_currentPosition?.longitude}'),
+                      ),
+                    ),
+                    Card(
+                      child: ListTile(
+                        leading: Icon(Icons.sensor_window),
+                        title: Text('Gyro'),
+                        subtitle: Text(_gyroscopeValues != null
+                            ? _gyroscopeValues!
+                                .map((v) => v.toStringAsFixed(1))
+                                .join(", ")
+                            : "No data"),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               TextField(
                 controller: _txController,
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(),
                   labelText: 'Data to send',
                 ),
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () {
                   discoverServices(); // Calls the function to send the text
                 },
                 child: Text('Send'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                ),
               ),
             ],
           ),
@@ -869,6 +911,55 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ),
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   // final gyroscope =
+  //   //     _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
+
+  //   return ScaffoldMessenger(
+  //     key: snackBarKeyC,
+  //     child: Scaffold(
+  //       appBar: AppBar(
+  //         title: Text(widget.device.localName),
+  //         actions: <Widget>[
+  //           StreamBuilder<BluetoothConnectionState>(
+  //             stream: widget.device.connectionState,
+  //             initialData: BluetoothConnectionState.connecting,
+  //             builder:
+  //           )
+  //         ],
+  //       ),
+  //       body: SingleChildScrollView(
+  //         child: Column(
+  //           children: [
+  //             Text('Received Data: $receivedData'),
+  //             Text('Temp: $temp'),
+  //             Text('R: $r'),
+  //             Text('G: $g'),
+  //             Text('B: $b'),
+  //             Text('Battery: $bat'),
+  //             Text('Gyro: ${jsonEncode(_gyroscopeValues)}'),
+  //             Text('Position: ${(_currentPosition.toString())}'),
+  //             TextField(
+  //               controller: _txController,
+  //               decoration: InputDecoration(
+  //                 border: OutlineInputBorder(),
+  //                 labelText: 'Data to send',
+  //               ),
+  //             ),
+  //             TextButton(
+  //               onPressed: () {
+  //                 discoverServices(); // Calls the function to send the text
+  //               },
+  //               child: Text('Send'),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }
 
 //   @override
