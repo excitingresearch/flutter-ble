@@ -706,6 +706,7 @@ class DeviceScreen extends StatefulWidget {
 }
 
 class _DeviceScreenState extends State<DeviceScreen> {
+  // {'latitude': 0, 'longitude': 0} as LocationData;
   String receivedData = '';
   double temp = 0.0;
   int r = 255;
@@ -717,7 +718,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
 
-  // LocationData _currentPosition;
+  Location location = Location();
+  LocationData? _currentPosition;
 
   StreamSubscription? subscription;
 
@@ -749,9 +751,29 @@ class _DeviceScreenState extends State<DeviceScreen> {
       ),
     );
 
-    // getLoc();
+    getLoc();
 
     connectToDevice();
+  }
+
+  getLoc() async {
+    bool _serviceEnabled;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _currentPosition = await location.getLocation();
+    location.onLocationChanged.listen((LocationData currentLocation) {
+      print("${currentLocation.longitude} : ${currentLocation.longitude}");
+      setState(() {
+        _currentPosition = currentLocation;
+      });
+    });
   }
 
   connectToDevice() async {
@@ -822,7 +844,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     'battery': _bat.toStringAsFixed(2),
                     'color': jsonEncode([_r, _g, _b]),
                     'excitement': '0',
-                    'location': jsonEncode([2, 2]),
+                    'location': jsonEncode([
+                      _currentPosition?.latitude,
+                      _currentPosition?.longitude
+                    ]),
                     'proximity': jsonEncode([
                       // {'id': 'a', 'distance': 0}
                     ]),
@@ -934,6 +959,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               Text('B: $b'),
               Text('Battery: $bat'),
               Text('Gyro: ${jsonEncode(_gyroscopeValues)}'),
+              Text('Position: ${(_currentPosition.toString())}'),
               TextField(
                 controller: _txController,
                 decoration: InputDecoration(
