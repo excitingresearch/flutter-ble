@@ -6,7 +6,9 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:io';
+import 'dart:convert';
 
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // import 'package:flutter_blue/flutter_blue.dart';
@@ -15,6 +17,257 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_ble_moody/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+
+final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
+final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
+final snackBarKeyC = GlobalKey<ScaffoldMessengerState>();
+final snackBarKeyNFC = GlobalKey<ScaffoldMessengerState>();
+
+void main() {
+  if (Platform.isAndroid) {
+    WidgetsFlutterBinding.ensureInitialized();
+    [
+      Permission.location,
+      Permission.storage,
+      Permission.bluetooth,
+      Permission.bluetoothConnect,
+      Permission.bluetoothScan
+    ].request().then((status) {
+      runApp(MyApp());
+    });
+  } else {
+    runApp(MyApp());
+  }
+
+  // runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'RFID Scanner App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: FirstScreen(),
+    );
+  }
+}
+
+class FirstScreen extends StatefulWidget {
+  @override
+  _FirstScreenState createState() => _FirstScreenState();
+}
+
+class _FirstScreenState extends State<FirstScreen> {
+  TextEditingController _deviceIdController = TextEditingController();
+  bool isManualEntry = false;
+  String get deviceId => _deviceIdController.text;
+  bool polling = false;
+  bool polling_ended = true;
+  void pollRFID() async {
+    isManualEntry = false;
+    setState(() {
+      polling = true;
+      polling_ended = false;
+    });
+    while (polling && _deviceIdController.text.isEmpty) {
+      print("poll");
+      try {
+        NFCTag tag =
+            await FlutterNfcKit.poll(); //timeout: Duration(milliseconds: 750)
+        if (!polling) {
+          return;
+        }
+        var found = false;
+
+        // read NDEF records if available
+        if (tag.ndefAvailable == true) {
+          /// decoded NDEF records (see [ndef.NDEFRecord] for details)
+          /// `UriRecord: id=(empty) typeNameFormat=TypeNameFormat.nfcWellKnown type=U uri=https://github.com/nfcim/ndef`
+          ///
+          /// var record
+          // in await FlutterNfcKit.readNDEFRecords(cached: false)
+
+// List<NDEFRecord> records = await FlutterNfcKit.readNDEFRecords(cached: false);
+
+// for (NDEFRecord record in records) {
+//   if (record is TextRecord) {
+//     print('The language of text record is: ${record.language}');
+//     print('The content of text record is: ${record.text}');
+//   }
+// }
+          List records = await FlutterNfcKit.readNDEFRecords(cached: false);
+          for (var record in records) {
+            Uint8List lastFourBytes =
+                record.payload.sublist(record.payload.length - 4);
+
+            String payloadAsString = String.fromCharCodes(lastFourBytes);
+
+            print(record.toString());
+            print(record.payload);
+            print(lastFourBytes);
+            print('Payload: $payloadAsString');
+
+            if (!found &&
+                payloadAsString.startsWith("m") &&
+                payloadAsString.length == 4) {
+              found = true;
+              setState(() {
+                _deviceIdController.text = payloadAsString;
+                polling = false;
+              });
+            }
+          }
+
+          // /// raw NDEF records (data in hex string)
+          // /// `{identifier: "", payload: "00010203", type: "0001", typeNameFormat: "nfcWellKnown"}`
+          // for (var record
+          //     in await FlutterNfcKit.readNDEFRawRecords(cached: false)) {
+          //   print(jsonEncode(record).toString());
+          // }
+        }
+
+        if (!found) {
+          print("No moody device");
+          final snackBar = SnackBar(content: Text("No MOODY device"));
+          snackBarKeyNFC.currentState?.showSnackBar(snackBar);
+        }
+      } catch (e) {
+        print('Error polling NFC: $e');
+        // break;
+      }
+    }
+    setState(() {
+      polling_ended = true;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    pollRFID();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaffoldMessenger(
+        key: snackBarKeyNFC,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Connect MOODY device'),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Column(
+                  children: <Widget>[
+                    Container(
+                      width: 150.0,
+                      child: Text(
+                        'Scan your moody device with your phone, or enter the number',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 150.0,
+                      child: TextField(
+                        controller: _deviceIdController,
+                        textAlign: TextAlign.center,
+                        onChanged: (value) {
+                          isManualEntry = value.isNotEmpty;
+                          setState(
+                              () {}); // To ensure the button's onPressed status gets updated.
+                        },
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Device ID',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  child: Text('Go to second screen'),
+                  onPressed: deviceId.isNotEmpty &&
+                          deviceId.startsWith("m") &&
+                          deviceId.length == 4
+                      ? () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FlutterBlueApp(deviceId: deviceId),
+                            ),
+                          ).then((value) {
+                            print("back here");
+                            pollRFID();
+                          })
+                      : null,
+                ),
+                ElevatedButton(
+                  child: !polling ? Text('Scan') : Text('Stop'),
+                  onPressed: !polling
+                      ? () {
+                          //_deviceIdController.clear();
+                          if (polling_ended)
+                            pollRFID();
+                          else
+                            setState(() {
+                              polling = true;
+                            });
+                        }
+                      : () {
+                          print('stop $polling');
+                          //_deviceIdController.clear();
+                          setState(() {
+                            polling = false;
+                          });
+                        },
+                ),
+                ElevatedButton(
+                  child: Text('Clear'),
+                  onPressed: deviceId.isNotEmpty
+                      ? () {
+                          _deviceIdController.clear();
+                          pollRFID();
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ));
+  }
+}
+
+// class SecondScreen extends StatelessWidget {
+//   final String deviceId;
+
+//   SecondScreen({Key? key, required this.deviceId}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Second Screen'),
+//       ),
+//       body: Center(
+//         child: Text('Device ID: $deviceId'),
+//       ),
+//     );
+//   }
+// }
+
+/*
 void main() {
   // var x = 0;
   // var period = const Duration(milliseconds: 3500); // 4
@@ -54,7 +307,7 @@ void main() {
     runApp(const FlutterBlueApp());
   }
 }
-
+*/
 String intToTimeLeft(int value) {
   int h, m, s, d;
 
@@ -110,10 +363,6 @@ parseManufacturerData(data) {
   print("ms: ${intToTimeLeft((uptime.getUint32(0, Endian.big) ~/ 10))}");
 }
 
-final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
-final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
-final snackBarKeyC = GlobalKey<ScaffoldMessengerState>();
-
 class BluetoothAdapterStateObserver extends NavigatorObserver {
   StreamSubscription<BluetoothAdapterState>? _btStateSubscription;
 
@@ -141,7 +390,11 @@ class BluetoothAdapterStateObserver extends NavigatorObserver {
 }
 
 class FlutterBlueApp extends StatelessWidget {
-  const FlutterBlueApp({Key? key}) : super(key: key);
+  final String deviceId;
+
+  const FlutterBlueApp({Key? key, required this.deviceId}) : super(key: key);
+
+  // const FlutterBlueApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +406,7 @@ class FlutterBlueApp extends StatelessWidget {
           builder: (c, snapshot) {
             final adapterState = snapshot.data;
             if (adapterState == BluetoothAdapterState.on) {
-              return const FindDevicesScreen();
+              return FindDevicesScreen(deviceId: deviceId);
             } else {
               FlutterBluePlus.stopScan();
               return BluetoothOffScreen(adapterState: adapterState);
@@ -162,6 +415,15 @@ class FlutterBlueApp extends StatelessWidget {
       navigatorObservers: [BluetoothAdapterStateObserver()],
     );
   }
+}
+
+String prettyException(String prefix, dynamic e) {
+  if (e is FlutterBluePlusException) {
+    return "$prefix ${e.errorString}";
+  } else if (e is PlatformException) {
+    return "$prefix ${e.message}";
+  }
+  return prefix + e.toString();
 }
 
 class BluetoothOffScreen extends StatelessWidget {
@@ -215,8 +477,33 @@ class BluetoothOffScreen extends StatelessWidget {
   }
 }
 
-class FindDevicesScreen extends StatelessWidget {
-  const FindDevicesScreen({Key? key}) : super(key: key);
+class FindDevicesScreen extends StatefulWidget {
+  final String deviceId;
+
+  FindDevicesScreen({Key? key, required this.deviceId}) : super(key: key);
+
+  @override
+  _FindDevicesScreenState createState() => _FindDevicesScreenState();
+}
+
+class _FindDevicesScreenState extends State<FindDevicesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    print('FindDevicesScreen was created');
+
+    try {
+      if (FlutterBluePlus.isScanningNow == false) {
+        FlutterBluePlus.startScan(
+            timeout: const Duration(seconds: 15),
+            androidUsesFineLocation: false);
+      }
+    } catch (e) {
+      final snackBar =
+          SnackBar(content: Text(prettyException("Start Scan Error:", e)));
+      snackBarKeyB.currentState?.showSnackBar(snackBar);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +511,7 @@ class FindDevicesScreen extends StatelessWidget {
       key: snackBarKeyB,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Find Devices'),
+          title: const Text('Find Device: '), // + deviceId),
         ),
         body: RefreshIndicator(
           onRefresh: () {
@@ -308,6 +595,14 @@ class FindDevicesScreen extends StatelessWidget {
                   initialData: const [],
                   builder: (c, snapshot) => Column(
                     children: (snapshot.data ?? [])
+                        // .map((r) {
+                        //   print(r.device.localName);
+                        //   return r;
+                        // })
+                        .where((r) =>
+                            r.device.localName ==
+                            widget.deviceId) // Filter based on deviceId
+
                         .map(
                           (r) => ScanResultTile(
                             result: r,
@@ -380,101 +675,130 @@ class FindDevicesScreen extends StatelessWidget {
   }
 }
 
-class DeviceScreen extends StatelessWidget {
+class DeviceScreen extends StatefulWidget {
   const DeviceScreen({Key? key, required this.device}) : super(key: key);
 
   final BluetoothDevice device;
 
-  List<int> _getRandomBytes() {
-    final math = Random();
-    return [
-      math.nextInt(255),
-      math.nextInt(255),
-      math.nextInt(255),
-      math.nextInt(255)
-    ];
+  @override
+  _DeviceScreenState createState() => _DeviceScreenState();
+}
+
+class _DeviceScreenState extends State<DeviceScreen> {
+  String receivedData = '';
+  double temp = 0.0;
+  int r = 255;
+  int g = 255;
+  int b = 255;
+
+  StreamSubscription? subscription;
+
+  final _txController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    connectToDevice();
   }
 
-  List<Widget> _buildServiceTiles(
-      BuildContext context, List<BluetoothService> services) {
-    return services
-        .map(
-          (s) => ServiceTile(
-            service: s,
-            characteristicTiles: s.characteristics
-                .map(
-                  (c) => CharacteristicTile(
-                    characteristic: c,
-                    onReadPressed: () async {
-                      try {
-                        await c.read();
-                      } catch (e) {
-                        final snackBar = SnackBar(
-                            content: Text(prettyException("Read Error:", e)));
-                        snackBarKeyC.currentState?.showSnackBar(snackBar);
-                      }
-                    },
-                    onWritePressed: () async {
-                      try {
-                        await c.write(_getRandomBytes(),
-                            withoutResponse: c.properties.writeWithoutResponse);
-                        if (c.properties.read) {
-                          await c.read();
-                        }
-                      } catch (e) {
-                        final snackBar = SnackBar(
-                            content: Text(prettyException("Write Error:", e)));
-                        snackBarKeyC.currentState?.showSnackBar(snackBar);
-                      }
-                    },
-                    onNotificationPressed: () async {
-                      try {
-                        await c.setNotifyValue(c.isNotifying == false);
-                        if (c.properties.read) {
-                          await c.read();
-                        }
-                      } catch (e) {
-                        final snackBar = SnackBar(
-                            content:
-                                Text(prettyException("Subscribe Error:", e)));
-                        snackBarKeyC.currentState?.showSnackBar(snackBar);
-                      }
-                    },
-                    descriptorTiles: c.descriptors
-                        .map(
-                          (d) => DescriptorTile(
-                            descriptor: d,
-                            onReadPressed: () async {
-                              try {
-                                await d.read();
-                              } catch (e) {
-                                final snackBar = SnackBar(
-                                    content: Text(
-                                        prettyException("Read Error:", e)));
-                                snackBarKeyC.currentState
-                                    ?.showSnackBar(snackBar);
-                              }
-                            },
-                            onWritePressed: () async {
-                              try {
-                                await d.write(_getRandomBytes());
-                              } catch (e) {
-                                final snackBar = SnackBar(
-                                    content: Text(
-                                        prettyException("Write Error:", e)));
-                                snackBarKeyC.currentState
-                                    ?.showSnackBar(snackBar);
-                              }
-                            },
-                          ),
-                        )
-                        .toList(),
-                  ),
-                )
-                .toList(),
-          ),
-        )
-        .toList();
+  connectToDevice() async {
+    await widget.device.connect();
+    final snackBar = SnackBar(content: Text("Connected"));
+    snackBarKeyC.currentState?.showSnackBar(snackBar);
+    discoverServices();
+  }
+
+  discoverServices() async {
+    List<BluetoothService> services = await widget.device.discoverServices();
+    services.forEach((service) {
+      // UUIDs for the UART service and its RX and TX characteristics
+      const uartServiceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+      const rxCharacteristicUuid = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+      const txCharacteristicUuid = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+
+      if (service.uuid.toString().toUpperCase() == uartServiceUuid) {
+        service.characteristics.forEach((characteristic) {
+          if (characteristic.uuid.toString().toUpperCase() ==
+              txCharacteristicUuid) {
+            // Read and listen to changes to the TX characteristic
+            characteristic.setNotifyValue(true);
+            print("Listen to service");
+            subscription = characteristic.lastValueStream.listen((value) async {
+              // String receivedData = "2175|(0,225,35)"; // Your received string.
+              String localReceivedData = String.fromCharCodes(value);
+
+              List<String> splitData = localReceivedData.split('|');
+              var l = splitData.length;
+              print('length: $l');
+              print('Received $localReceivedData');
+
+              if (splitData.length > 2 && splitData[1] != "None") {
+                String tempString =
+                    splitData[0]; // String representation of TEMP*100.
+
+                String rgbString = splitData[1]
+                    .replaceAll('(', '')
+                    .replaceAll(')', ''); // String representation of (R,G,B).
+
+                double localTemp = double.parse((tempString)) /
+                    100; // Divide by 100 to get the original temperature.
+
+                List<String> rgbStrings = rgbString.split(',');
+                int _r = int.parse(rgbStrings[0]);
+                int _g = int.parse(rgbStrings[1]);
+                int _b = int.parse(rgbStrings[2]);
+
+                double bat = double.parse(splitData[2]);
+
+                print(
+                    'Temperature: $localTemp, R: $_r, G: $_g, B: $_b'); // Check the parsed values.
+
+                setState(() {
+                  receivedData = localReceivedData;
+                  temp = localTemp;
+                  r = _r;
+                  g = _g;
+                  b = _b;
+                });
+
+                final response = await http.post(
+                  Uri.parse('https://jsonplaceholder.typicode.com/posts'),
+                  headers: <String, String>{
+                    'Content-Type': 'application/json; charset=UTF-8',
+                  },
+                  body: jsonEncode(<String, String>{
+                    'title': 'Hello',
+                    'body': 'world',
+                    'userId': '1',
+                  }),
+                );
+
+                if (response.statusCode == 201) {
+                  // If the server returns a 201 CREATED response,
+                  // then parse the JSON.
+                  print('Response data: ${jsonDecode(response.body)}');
+                } else {
+                  // If the server did not return a 201 CREATED response,
+                  // then throw an exception.
+                  throw Exception('Failed to create post.');
+                }
+              } else {
+                print("Invalid data received: $localReceivedData");
+                setState(() {
+                  receivedData = localReceivedData;
+                });
+              }
+            });
+          } else if (characteristic.uuid.toString().toUpperCase() ==
+              rxCharacteristicUuid) {
+            // Write the text to the RX characteristic when the button is pressed
+            if (_txController.text.isNotEmpty) {
+              characteristic.write(utf8.encode(_txController.text));
+            }
+          }
+        });
+      }
+    });
   }
 
   @override
@@ -483,10 +807,10 @@ class DeviceScreen extends StatelessWidget {
       key: snackBarKeyC,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(device.localName),
+          title: Text(widget.device.localName),
           actions: <Widget>[
             StreamBuilder<BluetoothConnectionState>(
-              stream: device.connectionState,
+              stream: widget.device.connectionState,
               initialData: BluetoothConnectionState.connecting,
               builder: (c, snapshot) {
                 VoidCallback? onPressed;
@@ -495,7 +819,9 @@ class DeviceScreen extends StatelessWidget {
                   case BluetoothConnectionState.connected:
                     onPressed = () async {
                       try {
-                        await device.disconnect();
+                        await subscription?.cancel();
+
+                        await widget.device.disconnect();
                       } catch (e) {
                         final snackBar = SnackBar(
                             content:
@@ -508,7 +834,8 @@ class DeviceScreen extends StatelessWidget {
                   case BluetoothConnectionState.disconnected:
                     onPressed = () async {
                       try {
-                        await device.connect(timeout: Duration(seconds: 4));
+                        await widget.device
+                            .connect(timeout: Duration(seconds: 4));
                       } catch (e) {
                         final snackBar = SnackBar(
                             content:
@@ -539,107 +866,24 @@ class DeviceScreen extends StatelessWidget {
         ),
         body: SingleChildScrollView(
           child: Column(
-            children: <Widget>[
-              StreamBuilder<BluetoothConnectionState>(
-                stream: device.connectionState,
-                initialData: BluetoothConnectionState.connecting,
-                builder: (c, snapshot) => Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('${device.remoteId}'),
-                    ),
-                    ListTile(
-                      leading: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          snapshot.data == BluetoothConnectionState.connected
-                              ? const Icon(Icons.bluetooth_connected)
-                              : const Icon(Icons.bluetooth_disabled),
-                          snapshot.data == BluetoothConnectionState.connected
-                              ? StreamBuilder<int>(
-                                  stream: rssiStream(),
-                                  builder: (context, snapshot) {
-                                    return Text(
-                                        snapshot.hasData
-                                            ? '${snapshot.data}dBm'
-                                            : '',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall);
-                                  })
-                              : Text('',
-                                  style: Theme.of(context).textTheme.bodySmall),
-                        ],
-                      ),
-                      title: Text(
-                          'Device is ${snapshot.data.toString().split('.')[1]}.'),
-                      trailing: StreamBuilder<bool>(
-                        stream: device.isDiscoveringServices,
-                        initialData: false,
-                        builder: (c, snapshot) => IndexedStack(
-                          index: (snapshot.data ?? false) ? 1 : 0,
-                          children: <Widget>[
-                            TextButton(
-                              child: const Text("Get Services"),
-                              onPressed: () async {
-                                try {
-                                  await device.discoverServices();
-                                } catch (e) {
-                                  final snackBar = SnackBar(
-                                      content: Text(prettyException(
-                                          "Discover Services Error:", e)));
-                                  snackBarKeyC.currentState
-                                      ?.showSnackBar(snackBar);
-                                }
-                              },
-                            ),
-                            const IconButton(
-                              icon: SizedBox(
-                                child: CircularProgressIndicator(
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.grey),
-                                ),
-                                width: 18.0,
-                                height: 18.0,
-                              ),
-                              onPressed: null,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+            children: [
+              Text('Received Data: $receivedData'),
+              Text('Temp: $temp'),
+              Text('R: $r'),
+              Text('G: $g'),
+              Text('B: $b'),
+              TextField(
+                controller: _txController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Data to send',
                 ),
               ),
-              StreamBuilder<int>(
-                stream: device.mtu,
-                initialData: 0,
-                builder: (c, snapshot) => ListTile(
-                  title: const Text('MTU Size'),
-                  subtitle: Text('${snapshot.data} bytes'),
-                  trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () async {
-                        try {
-                          await device.requestMtu(223);
-                        } catch (e) {
-                          final snackBar = SnackBar(
-                              content: Text(
-                                  prettyException("Change Mtu Error:", e)));
-                          snackBarKeyC.currentState?.showSnackBar(snackBar);
-                        }
-                      }),
-                ),
-              ),
-              StreamBuilder<List<BluetoothService>>(
-                stream: device.servicesStream,
-                initialData: const [],
-                builder: (c, snapshot) {
-                  return Column(
-                    children: _buildServiceTiles(context, snapshot.data ?? []),
-                  );
+              TextButton(
+                onPressed: () {
+                  discoverServices(); // Calls the function to send the text
                 },
+                child: Text('Send'),
               ),
             ],
           ),
@@ -647,35 +891,330 @@ class DeviceScreen extends StatelessWidget {
       ),
     );
   }
-
-  Stream<int> rssiStream(
-      {Duration frequency = const Duration(seconds: 5)}) async* {
-    var isConnected = true;
-    final subscription = device.connectionState.listen((v) {
-      isConnected = v == BluetoothConnectionState.connected;
-    });
-    while (isConnected) {
-      try {
-        yield await device.readRssi();
-      } catch (e) {
-        print("Error reading RSSI: $e");
-        break;
-      }
-      await Future.delayed(frequency);
-    }
-    // Device disconnected, stopping RSSI stream
-    subscription.cancel();
-  }
 }
+ 
 
-String prettyException(String prefix, dynamic e) {
-  if (e is FlutterBluePlusException) {
-    return "$prefix ${e.errorString}";
-  } else if (e is PlatformException) {
-    return "$prefix ${e.message}";
-  }
-  return prefix + e.toString();
-}
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Device Screen'),
+//       ),
+//       body: Column(
+//         children: [
+//           Text('Received Data: $receivedData'),
+//           Text('Temp: $temp'),
+//           Text('R: $r'),
+//           Text('G: $g'),
+//           Text('B: $b'),
+//           TextField(
+//             controller: _txController,
+//             decoration: InputDecoration(
+//               border: OutlineInputBorder(),
+//               labelText: 'Data to send',
+//             ),
+//           ),
+//           TextButton(
+//             onPressed: () {
+//               discoverServices(); // Calls the function to send the text
+//             },
+//             child: Text('Send'),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+// class DeviceScreen extends StatelessWidget {
+//   const DeviceScreen({Key? key, required this.device}) : super(key: key);
+
+//   final BluetoothDevice device;
+
+//   List<int> _getRandomBytes() {
+//     final math = Random();
+//     return [
+//       math.nextInt(255),
+//       math.nextInt(255),
+//       math.nextInt(255),
+//       math.nextInt(255)
+//     ];
+//   }
+
+//   List<Widget> _buildServiceTiles(
+//       BuildContext context, List<BluetoothService> services) {
+//     return services
+//         .map(
+//           (s) => ServiceTile(
+//             service: s,
+//             characteristicTiles: s.characteristics
+//                 .map(
+//                   (c) => CharacteristicTile(
+//                     characteristic: c,
+//                     onReadPressed: () async {
+//                       try {
+//                         await c.read();
+//                       } catch (e) {
+//                         final snackBar = SnackBar(
+//                             content: Text(prettyException("Read Error:", e)));
+//                         snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                       }
+//                     },
+//                     onWritePressed: () async {
+//                       try {
+//                         await c.write(_getRandomBytes(),
+//                             withoutResponse: c.properties.writeWithoutResponse);
+//                         if (c.properties.read) {
+//                           await c.read();
+//                         }
+//                       } catch (e) {
+//                         final snackBar = SnackBar(
+//                             content: Text(prettyException("Write Error:", e)));
+//                         snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                       }
+//                     },
+//                     onNotificationPressed: () async {
+//                       try {
+//                         await c.setNotifyValue(c.isNotifying == false);
+//                         if (c.properties.read) {
+//                           await c.read();
+//                         }
+//                       } catch (e) {
+//                         final snackBar = SnackBar(
+//                             content:
+//                                 Text(prettyException("Subscribe Error:", e)));
+//                         snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                       }
+//                     },
+//                     descriptorTiles: c.descriptors
+//                         .map(
+//                           (d) => DescriptorTile(
+//                             descriptor: d,
+//                             onReadPressed: () async {
+//                               try {
+//                                 await d.read();
+//                               } catch (e) {
+//                                 final snackBar = SnackBar(
+//                                     content: Text(
+//                                         prettyException("Read Error:", e)));
+//                                 snackBarKeyC.currentState
+//                                     ?.showSnackBar(snackBar);
+//                               }
+//                             },
+//                             onWritePressed: () async {
+//                               try {
+//                                 await d.write(_getRandomBytes());
+//                               } catch (e) {
+//                                 final snackBar = SnackBar(
+//                                     content: Text(
+//                                         prettyException("Write Error:", e)));
+//                                 snackBarKeyC.currentState
+//                                     ?.showSnackBar(snackBar);
+//                               }
+//                             },
+//                           ),
+//                         )
+//                         .toList(),
+//                   ),
+//                 )
+//                 .toList(),
+//           ),
+//         )
+//         .toList();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ScaffoldMessenger(
+//       key: snackBarKeyC,
+//       child: Scaffold(
+//         appBar: AppBar(
+//           title: Text(device.localName),
+//           actions: <Widget>[
+//             StreamBuilder<BluetoothConnectionState>(
+//               stream: device.connectionState,
+//               initialData: BluetoothConnectionState.connecting,
+//               builder: (c, snapshot) {
+//                 VoidCallback? onPressed;
+//                 String text;
+//                 switch (snapshot.data) {
+//                   case BluetoothConnectionState.connected:
+//                     onPressed = () async {
+//                       try {
+//                         await device.disconnect();
+//                       } catch (e) {
+//                         final snackBar = SnackBar(
+//                             content:
+//                                 Text(prettyException("Disconnect Error:", e)));
+//                         snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                       }
+//                     };
+//                     text = 'DISCONNECT';
+//                     break;
+//                   case BluetoothConnectionState.disconnected:
+//                     onPressed = () async {
+//                       try {
+//                         await device.connect(timeout: Duration(seconds: 4));
+//                       } catch (e) {
+//                         final snackBar = SnackBar(
+//                             content:
+//                                 Text(prettyException("Connect Error:", e)));
+//                         snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                       }
+//                     };
+//                     text = 'CONNECT';
+//                     break;
+//                   default:
+//                     onPressed = null;
+//                     text =
+//                         snapshot.data.toString().split(".").last.toUpperCase();
+//                     break;
+//                 }
+//                 return TextButton(
+//                     onPressed: onPressed,
+//                     child: Text(
+//                       text,
+//                       style: Theme.of(context)
+//                           .primaryTextTheme
+//                           .labelLarge
+//                           ?.copyWith(color: Colors.white),
+//                     ));
+//               },
+//             )
+//           ],
+//         ),
+//         body: SingleChildScrollView(
+//           child: Column(
+//             children: <Widget>[
+//               StreamBuilder<BluetoothConnectionState>(
+//                 stream: device.connectionState,
+//                 initialData: BluetoothConnectionState.connecting,
+//                 builder: (c, snapshot) => Column(
+//                   children: [
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Text('${device.remoteId}'),
+//                     ),
+//                     ListTile(
+//                       leading: Column(
+//                         mainAxisAlignment: MainAxisAlignment.center,
+//                         children: [
+//                           snapshot.data == BluetoothConnectionState.connected
+//                               ? const Icon(Icons.bluetooth_connected)
+//                               : const Icon(Icons.bluetooth_disabled),
+//                           snapshot.data == BluetoothConnectionState.connected
+//                               ? StreamBuilder<int>(
+//                                   stream: rssiStream(),
+//                                   builder: (context, snapshot) {
+//                                     return Text(
+//                                         snapshot.hasData
+//                                             ? '${snapshot.data}dBm'
+//                                             : '',
+//                                         style: Theme.of(context)
+//                                             .textTheme
+//                                             .bodySmall);
+//                                   })
+//                               : Text('',
+//                                   style: Theme.of(context).textTheme.bodySmall),
+//                         ],
+//                       ),
+//                       title: Text(
+//                           'Device is ${snapshot.data.toString().split('.')[1]}.'),
+//                       trailing: StreamBuilder<bool>(
+//                         stream: device.isDiscoveringServices,
+//                         initialData: false,
+//                         builder: (c, snapshot) => IndexedStack(
+//                           index: (snapshot.data ?? false) ? 1 : 0,
+//                           children: <Widget>[
+//                             TextButton(
+//                               child: const Text("Get Services"),
+//                               onPressed: () async {
+//                                 try {
+//                                   await device.discoverServices();
+//                                 } catch (e) {
+//                                   final snackBar = SnackBar(
+//                                       content: Text(prettyException(
+//                                           "Discover Services Error:", e)));
+//                                   snackBarKeyC.currentState
+//                                       ?.showSnackBar(snackBar);
+//                                 }
+//                               },
+//                             ),
+//                             const IconButton(
+//                               icon: SizedBox(
+//                                 child: CircularProgressIndicator(
+//                                   valueColor:
+//                                       AlwaysStoppedAnimation(Colors.grey),
+//                                 ),
+//                                 width: 18.0,
+//                                 height: 18.0,
+//                               ),
+//                               onPressed: null,
+//                             )
+//                           ],
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               StreamBuilder<int>(
+//                 stream: device.mtu,
+//                 initialData: 0,
+//                 builder: (c, snapshot) => ListTile(
+//                   title: const Text('MTU Size'),
+//                   subtitle: Text('${snapshot.data} bytes'),
+//                   trailing: IconButton(
+//                       icon: const Icon(Icons.edit),
+//                       onPressed: () async {
+//                         try {
+//                           await device.requestMtu(223);
+//                         } catch (e) {
+//                           final snackBar = SnackBar(
+//                               content: Text(
+//                                   prettyException("Change Mtu Error:", e)));
+//                           snackBarKeyC.currentState?.showSnackBar(snackBar);
+//                         }
+//                       }),
+//                 ),
+//               ),
+//               StreamBuilder<List<BluetoothService>>(
+//                 stream: device.servicesStream,
+//                 initialData: const [],
+//                 builder: (c, snapshot) {
+//                   return Column(
+//                     children: _buildServiceTiles(context, snapshot.data ?? []),
+//                   );
+//                 },
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Stream<int> rssiStream(
+//       {Duration frequency = const Duration(seconds: 5)}) async* {
+//     var isConnected = true;
+//     final subscription = device.connectionState.listen((v) {
+//       isConnected = v == BluetoothConnectionState.connected;
+//     });
+//     while (isConnected) {
+//       try {
+//         yield await device.readRssi();
+//       } catch (e) {
+//         print("Error reading RSSI: $e");
+//         break;
+//       }
+//       await Future.delayed(frequency);
+//     }
+//     // Device disconnected, stopping RSSI stream
+//     subscription.cancel();
+//   }
+// }
+
 /*
 class FindDevicesScreen extends StatelessWidget {
   @override

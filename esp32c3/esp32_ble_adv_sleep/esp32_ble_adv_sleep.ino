@@ -5,7 +5,7 @@
 #include "BLEBeacon.h"
 #include "esp_sleep.h"
 #include <Adafruit_NeoPixel.h>
-#define PIN D0
+#define PIN D10
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(1, PIN, NEO_GRB + NEO_KHZ800);
 
@@ -125,7 +125,7 @@ void setup() {
   setBeacon();
   // Start advertising
   pAdvertising->start();
-  delay(1000);
+  delay(10000);
   pAdvertising->stop();
   Serial.printf("enter deep sleep\n");
   esp_deep_sleep(1000000LL * GPIO_DEEP_SLEEP_DURATION);
