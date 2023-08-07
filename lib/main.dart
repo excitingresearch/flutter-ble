@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:math';
-import 'dart:typed_data';
 import 'dart:io';
 import 'dart:convert';
 
@@ -70,12 +68,12 @@ class _FirstScreenState extends State<FirstScreen> {
   bool isManualEntry = false;
   String get deviceId => _deviceIdController.text;
   bool polling = false;
-  bool polling_ended = true;
+  bool pollingEnded = true;
   void pollRFID() async {
     isManualEntry = false;
     setState(() {
       polling = true;
-      polling_ended = false;
+      pollingEnded = false;
     });
     while (polling && _deviceIdController.text.isEmpty) {
       print("poll");
@@ -92,20 +90,6 @@ class _FirstScreenState extends State<FirstScreen> {
 
         // read NDEF records if available
         if (tag.ndefAvailable == true) {
-          /// decoded NDEF records (see [ndef.NDEFRecord] for details)
-          /// `UriRecord: id=(empty) typeNameFormat=TypeNameFormat.nfcWellKnown type=U uri=https://github.com/nfcim/ndef`
-          ///
-          /// var record
-          // in await FlutterNfcKit.readNDEFRecords(cached: false)
-
-// List<NDEFRecord> records = await FlutterNfcKit.readNDEFRecords(cached: false);
-
-// for (NDEFRecord record in records) {
-//   if (record is TextRecord) {
-//     print('The language of text record is: ${record.language}');
-//     print('The content of text record is: ${record.text}');
-//   }
-// }
           List records = await FlutterNfcKit.readNDEFRecords(cached: false);
           for (var record in records) {
             Uint8List lastFourBytes =
@@ -128,13 +112,6 @@ class _FirstScreenState extends State<FirstScreen> {
               });
             }
           }
-
-          // /// raw NDEF records (data in hex string)
-          // /// `{identifier: "", payload: "00010203", type: "0001", typeNameFormat: "nfcWellKnown"}`
-          // for (var record
-          //     in await FlutterNfcKit.readNDEFRawRecords(cached: false)) {
-          //   print(jsonEncode(record).toString());
-          // }
         }
 
         if (!found) {
@@ -156,7 +133,7 @@ class _FirstScreenState extends State<FirstScreen> {
       }
     }
     setState(() {
-      polling_ended = true;
+      pollingEnded = true;
     });
   }
 
@@ -230,7 +207,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   onPressed: !polling
                       ? () {
                           //_deviceIdController.clear();
-                          if (polling_ended)
+                          if (pollingEnded)
                             pollRFID();
                           else
                             setState(() {
@@ -259,120 +236,6 @@ class _FirstScreenState extends State<FirstScreen> {
           ),
         ));
   }
-}
-
-// class SecondScreen extends StatelessWidget {
-//   final String deviceId;
-
-//   SecondScreen({Key? key, required this.deviceId}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Second Screen'),
-//       ),
-//       body: Center(
-//         child: Text('Device ID: $deviceId'),
-//       ),
-//     );
-//   }
-// }
-
-/*
-void main() {
-  // var x = 0;
-  // var period = const Duration(milliseconds: 3500); // 4
-  // Timer.periodic(period, (arg) {flutter pub add flutter_blue_plus
-  //   x = x + 1;
-  //   print(x);
-
-  //   try {
-  //     // code that may cause an exception
-  //     // FlutterBlue.instance.stopScan();
-
-  //     // sleep(Duration(milliseconds: 1000)); // 1
-
-  //     FlutterBlue.instance.startScan(
-  //         timeout:
-  //             Duration(milliseconds: 3000)); // timeout: Duration(seconds: 4)
-  //   } catch (e) {
-  //     // code that handles the exception
-  //     print(e);
-  //   }
-  // });
-
-  //runApp(FlutterBlueApp());
-
-  if (Platform.isAndroid) {
-    WidgetsFlutterBinding.ensureInitialized();
-    [
-      Permission.location,
-      Permission.storage,
-      Permission.bluetooth,
-      Permission.bluetoothConnect,
-      Permission.bluetoothScan
-    ].request().then((status) {
-      runApp(const FlutterBlueApp());
-    });
-  } else {
-    runApp(const FlutterBlueApp());
-  }
-}
-*/
-String intToTimeLeft(int value) {
-  int h, m, s, d;
-
-  d = value ~/ (24 * 3600);
-  h = (value - d * (24 * 3600)) ~/ 3600;
-
-  m = ((value - d * (24 * 3600) - h * 3600)) ~/ 60;
-
-  s = value - d * (24 * 3600) - (h * 3600) - (m * 60);
-
-  String hourLeft = h.toString().length < 2 ? "0" + h.toString() : h.toString();
-
-  String minuteLeft =
-      m.toString().length < 2 ? "0" + m.toString() : m.toString();
-
-  String secondsLeft =
-      s.toString().length < 2 ? "0" + s.toString() : s.toString();
-
-  String result = "$d $hourLeft:$minuteLeft:$secondsLeft";
-
-  return result;
-}
-
-String getNiceHexArray(List<int> bytes) {
-  return '[${bytes.map((i) => i.toRadixString(16).padLeft(2, '0')).join(', ')}]'
-      .toUpperCase();
-}
-
-String getNiceServiceData(Map<String, List<int>> data) {
-  if (data.isEmpty) {
-    return 'N/A';
-  }
-  List<String> res = [];
-  data.forEach((id, bytes) {
-    res.add('${id.toUpperCase()}: ${getNiceHexArray(bytes)}');
-  });
-  return res.join(', ');
-}
-
-parseManufacturerData(data) {
-  print(getNiceHexArray(data));
-  var manufacturerData = Uint8List.fromList(new List<int>.from(data));
-  //var pressure = ByteData.sublistView(manufacturerData, 6, 10);
-  var temperature = ByteData.sublistView(manufacturerData, 4, 6);
-  var battery = ByteData.sublistView(manufacturerData, 2, 4);
-  //print("Pressure: ${pressure.getUint32(0, Endian.little)/100} psi");
-  print("Temperature: ${temperature.getUint16(0, Endian.little)} \u{00B0}C");
-  print("Battery: ${battery.getUint16(0, Endian.big)} %");
-
-  var advCount = ByteData.sublistView(manufacturerData, 6, 10);
-  print("Adv count: ${advCount.getUint32(0, Endian.big)}");
-  var uptime = ByteData.sublistView(manufacturerData, 10, 14);
-  print("ms: ${intToTimeLeft((uptime.getUint32(0, Endian.big) ~/ 10))}");
 }
 
 class BluetoothAdapterStateObserver extends NavigatorObserver {
@@ -405,8 +268,6 @@ class FlutterBlueApp extends StatelessWidget {
   final String deviceId;
 
   const FlutterBlueApp({Key? key, required this.deviceId}) : super(key: key);
-
-  // const FlutterBlueApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -491,9 +352,7 @@ class BluetoothOffScreen extends StatelessWidget {
 
 class FindDevicesScreen extends StatefulWidget {
   final String deviceId;
-
   FindDevicesScreen({Key? key, required this.deviceId}) : super(key: key);
-
   @override
   _FindDevicesScreenState createState() => _FindDevicesScreenState();
 }
@@ -612,10 +471,6 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                   initialData: const [],
                   builder: (c, snapshot) => Column(
                     children: (snapshot.data ?? [])
-                        // .map((r) {
-                        //   print(r.device.localName);
-                        //   return r;
-                        // })
                         .where((r) =>
                             r.device.localName ==
                             widget.deviceId) // Filter based on deviceId
@@ -706,7 +561,6 @@ class DeviceScreen extends StatefulWidget {
 }
 
 class _DeviceScreenState extends State<DeviceScreen> {
-  // {'latitude': 0, 'longitude': 0} as LocationData;
   String receivedData = '';
   double temp = 0.0;
   int r = 255;
@@ -921,8 +775,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final gyroscope =
-        _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
+    // final gyroscope =
+    //     _gyroscopeValues?.map((double v) => v.toStringAsFixed(1)).toList();
 
     return ScaffoldMessenger(
       key: snackBarKeyC,

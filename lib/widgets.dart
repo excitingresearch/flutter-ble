@@ -75,17 +75,17 @@ class ScanResultTile extends StatelessWidget {
       data.bat = 69;
       data.temp = 12.5;
     }
-    if (result.device.name.length > 0) {
+    if (result.device.localName.length > 0) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            result.device.name,
+            result.device.localName,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            result.device.id.toString(),
+            result.device.remoteId.toString(),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           Text(
@@ -99,13 +99,13 @@ class ScanResultTile extends StatelessWidget {
         ],
       );
     } else {
-      // return Text(result.device.id.toString());
+      // return Text(result.device.remoteId.toString());
       return Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            result.device.id.toString(),
+            result.device.remoteId.toString(),
             style: Theme.of(context).textTheme.bodySmall,
           ),
           Text(
@@ -258,7 +258,7 @@ class CharacteristicTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<int>>(
-      stream: characteristic.value,
+      stream: characteristic.lastValueStream,
       initialData: characteristic.lastValue,
       builder: (c, snapshot) {
         final value = snapshot.data;
@@ -336,7 +336,7 @@ class DescriptorTile extends StatelessWidget {
         ],
       ),
       subtitle: StreamBuilder<List<int>>(
-        stream: descriptor.value,
+        stream: descriptor.lastValueStream,
         initialData: descriptor.lastValue,
         builder: (c, snapshot) => Text(snapshot.data.toString()),
       ),
