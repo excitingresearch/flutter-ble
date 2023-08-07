@@ -27,6 +27,8 @@ final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyC = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyNFC = GlobalKey<ScaffoldMessengerState>();
 
+final String serverHost = '192.168.10.139:2000';
+
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -511,7 +513,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
       key: snackBarKeyB,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Find Device: '), // + deviceId),
+          title: Text('Find Device: ${widget.deviceId}'), // + deviceId),
         ),
         body: RefreshIndicator(
           onRefresh: () {
@@ -546,7 +548,10 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                       onPressed: () => Navigator.of(context)
                                           .push(MaterialPageRoute(
                                               builder: (context) =>
-                                                  DeviceScreen(device: d),
+                                                  DeviceScreen(
+                                                      device: d,
+                                                      deviceId:
+                                                          widget.deviceId),
                                               settings: RouteSettings(
                                                   name: '/deviceScreen'))),
                                     );
@@ -574,7 +579,9 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                                               snackBar);
                                                     });
                                                     return DeviceScreen(
-                                                        device: d);
+                                                        device: d,
+                                                        deviceId:
+                                                            widget.deviceId);
                                                   },
                                                   settings: RouteSettings(
                                                       name: '/deviceScreen')));
@@ -619,7 +626,9 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                         snackBarKeyB.currentState
                                             ?.showSnackBar(snackBar);
                                       });
-                                      return DeviceScreen(device: r.device);
+                                      return DeviceScreen(
+                                          device: r.device,
+                                          deviceId: widget.deviceId);
                                     },
                                     settings:
                                         RouteSettings(name: '/deviceScreen'))),
@@ -676,9 +685,11 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
 }
 
 class DeviceScreen extends StatefulWidget {
-  const DeviceScreen({Key? key, required this.device}) : super(key: key);
+  const DeviceScreen({Key? key, required this.device, required this.deviceId})
+      : super(key: key);
 
   final BluetoothDevice device;
+  final String deviceId;
 
   @override
   _DeviceScreenState createState() => _DeviceScreenState();
@@ -690,6 +701,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
   int r = 255;
   int g = 255;
   int b = 255;
+  double bat = 0.0;
 
   StreamSubscription? subscription;
 
@@ -748,10 +760,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 int _g = int.parse(rgbStrings[1]);
                 int _b = int.parse(rgbStrings[2]);
 
-                double bat = double.parse(splitData[2]);
+                double _bat = double.parse(splitData[2]);
 
                 print(
-                    'Temperature: $localTemp, R: $_r, G: $_g, B: $_b'); // Check the parsed values.
+                    '${widget.deviceId} >> Temperature: $localTemp, R: $_r, G: $_g, B: $_b, Battery: $_bat'); // Check the parsed values.
 
                 setState(() {
                   receivedData = localReceivedData;
@@ -759,28 +771,32 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   r = _r;
                   g = _g;
                   b = _b;
+                  bat = _bat;
                 });
 
-                final response = await http.post(
-                  Uri.parse('https://jsonplaceholder.typicode.com/posts'),
-                  headers: <String, String>{
-                    'Content-Type': 'application/json; charset=UTF-8',
-                  },
-                  body: jsonEncode(<String, String>{
-                    'title': 'Hello',
-                    'body': 'world',
-                    'userId': '1',
+                final response = await http.get(
+                  Uri.http(serverHost, '/addData', {
+                    'moodid': widget.deviceId,
+                    'temperature': localTemp.toStringAsFixed(2),
+                    'battery': _bat.toStringAsFixed(2),
+                    'color': jsonEncode([_r, _g, _b]),
+                    'excitement': '0',
+                    'location': jsonEncode([2, 2]),
+                    'proximity': jsonEncode([
+                      // {'id': 'a', 'distance': 0}
+                    ]),
+                    'gyro': jsonEncode([4, 4, 4]),
                   }),
                 );
 
-                if (response.statusCode == 201) {
-                  // If the server returns a 201 CREATED response,
+                if (response.statusCode == 200) {
+                  // If the server returns a 200 OK response,
                   // then parse the JSON.
-                  print('Response data: ${jsonDecode(response.body)}');
+                  print('Response data: ${(response.body)}');
                 } else {
-                  // If the server did not return a 201 CREATED response,
+                  // If the server did not return a 200 OK response,
                   // then throw an exception.
-                  throw Exception('Failed to create post.');
+                  throw Exception('Failed to get data.');
                 }
               } else {
                 print("Invalid data received: $localReceivedData");
@@ -872,6 +888,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               Text('R: $r'),
               Text('G: $g'),
               Text('B: $b'),
+              Text('Battery: $bat'),
               TextField(
                 controller: _txController,
                 decoration: InputDecoration(
@@ -892,8 +909,6 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
   }
 }
- 
-
 
 //   @override
 //   Widget build(BuildContext context) {
