@@ -713,6 +713,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
   int g = 255;
   int b = 255;
   double bat = 0.0;
+  StreamSubscription<List<ScanResult>>? scanResultsSubscription;
+  Map<String, int> deviceRssi = {};
 
   List<double>? _gyroscopeValues = [0, 0, 0];
 
@@ -724,6 +726,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
   StreamSubscription? subscription;
 
   final _txController = TextEditingController();
+
+// Don't forget to cancel the subscription when it's no longer needed
+  @override
+  void dispose() {
+    super.dispose();
+    scanResultsSubscription?.cancel();
+    FlutterBluePlus.stopScan();
+  }
 
   @override
   void initState() {
@@ -752,8 +762,33 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
 
     getLoc();
+    scanForDevices();
 
     connectToDevice();
+  }
+
+  void scanForDevices() async {
+    // FlutterBluePlus.startScan();
+    if (FlutterBluePlus.isScanningNow == false) {
+      FlutterBluePlus.startScan(
+          androidUsesFineLocation:
+              false); // timeout: const Duration(seconds: 15),
+    } else {
+      print('>>> is scanning');
+    }
+
+    print(">>> startScan");
+    scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
+      for (ScanResult result in results) {
+        String deviceName = result.device.localName;
+        print('>>> Found $deviceName');
+        if (deviceName != widget.deviceId &&
+            RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
+          deviceRssi[deviceName] = result.rssi;
+          // setState(() {});
+        }
+      }
+    });
   }
 
   getLoc() async {
@@ -848,9 +883,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       _currentPosition?.latitude,
                       _currentPosition?.longitude
                     ]),
-                    'proximity': jsonEncode([
-                      // {'id': 'a', 'distance': 0}
-                    ]),
+                    'proximity': jsonEncode(deviceRssi.entries
+                        .map((entry) =>
+                            {'id': entry.key, 'distance': entry.value})
+                        .toList()),
                     'gyro': jsonEncode(_gyroscopeValues),
                   }),
                 );
