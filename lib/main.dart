@@ -103,9 +103,7 @@ class _FirstScreenState extends State<FirstScreen> {
             print(lastFourBytes);
             print('Payload: $payloadAsString');
 
-            if (!found &&
-                payloadAsString.startsWith('m') &&
-                payloadAsString.length == 4) {
+            if (!found && RegExp(r'^m\d{3}$').hasMatch(payloadAsString)) {
               found = true;
               setState(() {
                 _deviceIdController.text = payloadAsString;
@@ -189,8 +187,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 ElevatedButton(
                   child: Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
-                          deviceId.startsWith('m') &&
-                          deviceId.length == 4
+                          RegExp(r'^m\d{3}$').hasMatch(deviceId)
                       ? () => Navigator.push(
                             context,
                             MaterialPageRoute(
