@@ -565,6 +565,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
   int g = 255;
   int b = 255;
   double bat = 0.0;
+
+  double sliderValue = 0.0;
+  bool toggleValue = false;
+
+  List<Color> gradientColors = []; // Color.fromARGB(255,255,255,255)
+
   StreamSubscription<List<ScanResult>>? scanResultsSubscription;
   Map<String, int> deviceRssi = {};
 
@@ -784,6 +790,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 int _g = int.parse(rgbStrings[1]);
                 int _b = int.parse(rgbStrings[2]);
 
+                Color c = Color.fromARGB(255, _r, _g, _b);
+
                 double _bat = double.parse(splitData[2]);
 
                 print(
@@ -796,6 +804,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   g = _g;
                   b = _b;
                   bat = _bat;
+                  gradientColors.add(c);
                 });
 
                 // cleanUpScanning();
@@ -852,6 +861,68 @@ class _DeviceScreenState extends State<DeviceScreen> {
       }
     });
   }
+
+  /*
+  double sliderValue = 0.0;
+  bool toggleValue = false;
+  String deviceId = 'm032';
+  int temperature = 20; // Initial temperature.
+
+  @override
+  void initState() {
+    super.initState();
+    // initDeviceDetails();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Flutter Demo Home Page'),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0.0, 0.0),
+            radius: 0.5,
+            colors: <Color>[
+              Colors.yellow,
+              Colors.red,
+            ],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            SizedBox(height: 10),
+            Text('Your Title'),
+            Slider(
+              value: sliderValue,
+              min: 0,
+              max: 100,
+              onChanged: (double value) {
+                setState(() {
+                  sliderValue = value;
+                });
+              },
+            ),
+            Switch(
+              value: toggleValue,
+              onChanged: (bool value) {
+                setState(() {
+                  toggleValue = value;
+                });
+              },
+            ),
+            Text('Device ID: $deviceId', style: TextStyle(fontSize: 10)),
+            Text('Temperature: $temperature°C', style: TextStyle(fontSize: 24)),
+            SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -920,75 +991,116 @@ class _DeviceScreenState extends State<DeviceScreen> {
         ),
         body: Padding(
           padding: EdgeInsets.all(10.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.network_check),
-                        title: Text('Received Data'),
-                        subtitle: Text('$receivedData'),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.thermostat_outlined),
-                        title: Text('Temp'),
-                        subtitle: Text('$temp °C'),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.color_lens),
-                        title: Text('Color: '),
-                        subtitle: Text('R: $r, G: $g, B: $b'),
-                      ),
-                    ),
-                    //...More ListTile widgets for other values
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.location_on),
-                        title: Text('Position'),
-                        subtitle: Text(
-                            'Latitude: ${_currentPosition?.latitude} \nLongitude: ${_currentPosition?.longitude}'),
-                      ),
-                    ),
-                    Card(
-                      child: ListTile(
-                        leading: Icon(Icons.sensor_window),
-                        title: Text('Gyro'),
-                        subtitle: Text(_gyroscopeValues != null
-                            ? _gyroscopeValues!
-                                .map((v) => v.toStringAsFixed(1))
-                                .join(', ')
-                            : 'No data'),
-                      ),
-                    ),
-                  ],
-                ),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(0.0, 0.0),
+                radius: 0.5,
+                colors: gradientColors,
               ),
-              TextField(
-                controller: _txController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(),
-                  labelText: 'Data to send',
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                SizedBox(height: 10),
+                Text('Your Title'),
+                Slider(
+                  value: sliderValue,
+                  min: 0,
+                  max: 100,
+                  onChanged: (double value) {
+                    setState(() {
+                      sliderValue = value;
+                    });
+                  },
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  discoverServices(); // Calls the function to send the text
-                },
-                child: Text('Send'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                Switch(
+                  value: toggleValue,
+                  onChanged: (bool value) {
+                    setState(() {
+                      toggleValue = value;
+                    });
+                  },
                 ),
-              ),
-            ],
+                Text('Device ID: ${widget.device.localName}',
+                    style: TextStyle(fontSize: 10)),
+                Text('Temperature: $temp', style: TextStyle(fontSize: 24)),
+                SizedBox(height: 10),
+                Text('Battery: ${bat.toStringAsFixed(2)}',
+                    style: TextStyle(fontSize: 24)),
+                SizedBox(height: 10),
+              ],
+            ),
           ),
+          // child: Column(
+          //   children: [
+          //     Expanded(
+          //       child: ListView(
+          //         children: [
+          //           Card(
+          //             child: ListTile(
+          //               leading: Icon(Icons.network_check),
+          //               title: Text('Received Data'),
+          //               subtitle: Text('$receivedData'),
+          //             ),
+          //           ),
+          //           Card(
+          //             child: ListTile(
+          //               leading: Icon(Icons.thermostat_outlined),
+          //               title: Text('Temp'),
+          //               subtitle: Text('$temp °C'),
+          //             ),
+          //           ),
+          //           Card(
+          //             child: ListTile(
+          //               leading: Icon(Icons.color_lens),
+          //               title: Text('Color: '),
+          //               subtitle: Text('R: $r, G: $g, B: $b'),
+          //             ),
+          //           ),
+          //           //...More ListTile widgets for other values
+          //           Card(
+          //             child: ListTile(
+          //               leading: Icon(Icons.location_on),
+          //               title: Text('Position'),
+          //               subtitle: Text(
+          //                   'Latitude: ${_currentPosition?.latitude} \nLongitude: ${_currentPosition?.longitude}'),
+          //             ),
+          //           ),
+          //           Card(
+          //             child: ListTile(
+          //               leading: Icon(Icons.sensor_window),
+          //               title: Text('Gyro'),
+          //               subtitle: Text(_gyroscopeValues != null
+          //                   ? _gyroscopeValues!
+          //                       .map((v) => v.toStringAsFixed(1))
+          //                       .join(', ')
+          //                   : 'No data'),
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //     TextField(
+          //       controller: _txController,
+          //       decoration: InputDecoration(
+          //         filled: true,
+          //         fillColor: Colors.white,
+          //         border: OutlineInputBorder(),
+          //         labelText: 'Data to send',
+          //       ),
+          //     ),
+          //     ElevatedButton(
+          //       onPressed: () {
+          //         discoverServices(); // Calls the function to send the text
+          //       },
+          //       child: Text('Send'),
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: Theme.of(context).colorScheme.secondary,
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ),
       ),
     );
