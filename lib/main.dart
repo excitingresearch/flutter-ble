@@ -27,7 +27,6 @@ final snackBarKeyNFC = GlobalKey<ScaffoldMessengerState>();
 //final String serverHost = '192.168.10.139:2000';
 final String serverHost = '134.122.18.168:2000';
 
-
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -78,13 +77,13 @@ class _FirstScreenState extends State<FirstScreen> {
       pollingEnded = false;
     });
     while (polling && _deviceIdController.text.isEmpty) {
-      print("poll");
+      print('poll');
       try {
         NFCTag tag = await FlutterNfcKit.poll(
             timeout: Duration(seconds: 3),
-            iosMultipleTagMessage: "Multiple tags found!",
+            iosMultipleTagMessage: 'Multiple tags found!',
             iosAlertMessage:
-                "Scan your tag"); //timeout: Duration(milliseconds: 750)
+                'Scan your tag'); //timeout: Duration(milliseconds: 750)
         if (!polling) {
           return;
         }
@@ -105,7 +104,7 @@ class _FirstScreenState extends State<FirstScreen> {
             print('Payload: $payloadAsString');
 
             if (!found &&
-                payloadAsString.startsWith("m") &&
+                payloadAsString.startsWith('m') &&
                 payloadAsString.length == 4) {
               found = true;
               setState(() {
@@ -117,8 +116,8 @@ class _FirstScreenState extends State<FirstScreen> {
         }
 
         if (!found) {
-          print("No moody device");
-          final snackBar = SnackBar(content: Text("No MOODY device"));
+          print('No moody device');
+          final snackBar = SnackBar(content: Text('No MOODY device'));
           snackBarKeyNFC.currentState?.showSnackBar(snackBar);
         } else {
           if (Platform.isAndroid) {
@@ -126,7 +125,7 @@ class _FirstScreenState extends State<FirstScreen> {
             await FlutterNfcKit.finish();
           } else {
 // iOS only: show alert/error message on finish
-            await FlutterNfcKit.finish(iosAlertMessage: "Success");
+            await FlutterNfcKit.finish(iosAlertMessage: 'Success');
           }
         }
       } catch (e) {
@@ -190,7 +189,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 ElevatedButton(
                   child: Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
-                          deviceId.startsWith("m") &&
+                          deviceId.startsWith('m') &&
                           deviceId.length == 4
                       ? () => Navigator.push(
                             context,
@@ -199,7 +198,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                   FlutterBlueApp(deviceId: deviceId),
                             ),
                           ).then((value) {
-                            print("back here");
+                            print('back here');
                             pollRFID();
                           })
                       : null,
@@ -294,9 +293,9 @@ class FlutterBlueApp extends StatelessWidget {
 
 String prettyException(String prefix, dynamic e) {
   if (e is FlutterBluePlusException) {
-    return "$prefix ${e.errorString}";
+    return '$prefix ${e.errorString}';
   } else if (e is PlatformException) {
-    return "$prefix ${e.message}";
+    return '$prefix ${e.message}';
   }
   return prefix + e.toString();
 }
@@ -322,7 +321,7 @@ class BluetoothOffScreen extends StatelessWidget {
                 color: Colors.white54,
               ),
               Text(
-                'Bluetooth Adapter is ${adapterState != null ? adapterState.toString().split(".").last : 'not available'}.',
+                'Bluetooth Adapter is ${adapterState != null ? adapterState.toString().split('.').last : 'not available'}.',
                 style: Theme.of(context)
                     .primaryTextTheme
                     .titleSmall
@@ -339,7 +338,7 @@ class BluetoothOffScreen extends StatelessWidget {
                     } catch (e) {
                       final snackBar = SnackBar(
                           content:
-                              Text(prettyException("Error Turning On:", e)));
+                              Text(prettyException('Error Turning On:', e)));
                       snackBarKeyA.currentState?.showSnackBar(snackBar);
                     }
                   },
@@ -373,7 +372,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
       }
     } catch (e) {
       final snackBar =
-          SnackBar(content: Text(prettyException("Start Scan Error:", e)));
+          SnackBar(content: Text(prettyException('Start Scan Error:', e)));
       snackBarKeyB.currentState?.showSnackBar(snackBar);
     }
   }
@@ -443,7 +442,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                                       final snackBar = SnackBar(
                                                           content: Text(
                                                               prettyException(
-                                                                  "Connect Error:",
+                                                                  'Connect Error:',
                                                                   e)));
                                                       snackBarKeyB.currentState
                                                           ?.showSnackBar(
@@ -489,7 +488,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                           .catchError((e) {
                                         final snackBar = SnackBar(
                                             content: Text(prettyException(
-                                                "Connect Error:", e)));
+                                                'Connect Error:', e)));
                                         snackBarKeyB.currentState
                                             ?.showSnackBar(snackBar);
                                       });
@@ -520,7 +519,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                     FlutterBluePlus.stopScan();
                   } catch (e) {
                     final snackBar = SnackBar(
-                        content: Text(prettyException("Stop Scan Error:", e)));
+                        content: Text(prettyException('Stop Scan Error:', e)));
                     snackBarKeyB.currentState?.showSnackBar(snackBar);
                   }
                 },
@@ -539,7 +538,7 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                     } catch (e) {
                       final snackBar = SnackBar(
                           content:
-                              Text(prettyException("Start Scan Error:", e)));
+                              Text(prettyException('Start Scan Error:', e)));
                       snackBarKeyB.currentState?.showSnackBar(snackBar);
                     }
                   });
@@ -579,16 +578,77 @@ class _DeviceScreenState extends State<DeviceScreen> {
   Location location = Location();
   LocationData? _currentPosition;
 
-  StreamSubscription? subscription;
+  StreamSubscription? bleSubscription;
+
+  // FlutterBlue flutterBlue = FlutterBlue.instance;
+  StreamSubscription? _scanSubscription;
+  // Timer? _timer;
 
   final _txController = TextEditingController();
 
-// Don't forget to cancel the subscription when it's no longer needed
+  void resetDevicesDataAndScan() async {
+    if (scanResultsSubscription == null) {
+      scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
+        for (ScanResult result in results) {
+          String deviceName = result.device.localName;
+          print('>>> Found $deviceName with rssi: ${result.rssi}');
+          if (deviceName != widget.deviceId &&
+              RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
+            deviceRssi[deviceName] = result.rssi;
+            // setState(() {});
+          }
+        }
+      });
+    }
+    deviceRssi = {};
+    if (FlutterBluePlus.isScanningNow == false) {
+      print('>>> Startscan START');
+      FlutterBluePlus.startScan(
+          timeout: const Duration(seconds: 15), androidUsesFineLocation: false);
+      print('>>> Startscan END');
+
+      Future.delayed(Duration(seconds: 15), () async {
+        // Stop scanning
+        //  _scanSubscription?.cancel();
+        print('>>> Stopscan START');
+        await FlutterBluePlus.stopScan();
+        print('>>> Stopscan END');
+      });
+    } else {
+      print('>>> already scanning');
+    }
+
+    // // Start scanning
+    // _scanSubscription?.cancel(); // Cancel any previous subscription
+    // _scanSubscription = FlutterBluePlus.scan().listen((scanResult) {
+    //   // Do something with scan result
+    //   // print('found device: ${scanResult.device.localName} with RSSI ${scanResult.rssi}');
+
+    //   // for (ScanResult result in results) {
+    //   String deviceName = scanResult.device.localName;
+    //   print('>>> Found $deviceName');
+    //   if (deviceName != widget.deviceId &&
+    //       RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
+    //     deviceRssi[deviceName] = scanResult.rssi;
+    //     // setState(() {});
+    //   }
+    //   // }
+    // });
+  }
+
+// Don't forget to cancel the bleSubscription when it's no longer needed
   @override
-  void dispose() {
+  void dispose() async {
+    _scanSubscription?.cancel();
+    cleanUpScanning();
+    //traverse through each element of list
+    for (var i = 0; i < _streamSubscriptions.length.toInt(); i++) {
+      await _streamSubscriptions[i].cancel();
+    }
+    await bleSubscription?.cancel();
+
+    await widget.device.disconnect();
     super.dispose();
-    scanResultsSubscription?.cancel();
-    FlutterBluePlus.stopScan();
   }
 
   @override
@@ -607,9 +667,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
               context: context,
               builder: (context) {
                 return const AlertDialog(
-                  title: Text("Sensor Not Found"),
+                  title: Text('Sensor Not Found'),
                   content: Text(
-                      "It seems that your device doesn't support User Accelerometer Sensor"),
+                      'It seems that your device doesn\'t support User Accelerometer Sensor'),
                 );
               });
         },
@@ -618,34 +678,46 @@ class _DeviceScreenState extends State<DeviceScreen> {
     );
 
     getLoc();
-    scanForDevices();
-
+    // scanForDevices();
+    resetDevicesDataAndScan();
     connectToDevice();
   }
 
-  void scanForDevices() async {
-    // FlutterBluePlus.startScan();
-    if (FlutterBluePlus.isScanningNow == false) {
-      FlutterBluePlus.startScan(
-          androidUsesFineLocation:
-              false); // timeout: const Duration(seconds: 15),
-    } else {
-      print('>>> is scanning');
+  void cleanUpScanning() async {
+    if (FlutterBluePlus.isScanningNow == true) {
+      await FlutterBluePlus.stopScan();
     }
-
-    print(">>> startScan");
-    scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
-      for (ScanResult result in results) {
-        String deviceName = result.device.localName;
-        print('>>> Found $deviceName');
-        if (deviceName != widget.deviceId &&
-            RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
-          deviceRssi[deviceName] = result.rssi;
-          // setState(() {});
-        }
-      }
-    });
+    await scanResultsSubscription?.cancel();
+    // if scanning: stop background ble scanning
   }
+
+  // void startShortScan() async {
+  //   print('>>> started Short Scan');
+  //   deviceRssi = {};
+  //   FlutterBluePlus.startScan(
+  //       timeout: const Duration(seconds: 3), androidUsesFineLocation: false); //
+  //   scanResultsSubscription = FlutterBluePlus.scanResults.listen((results) {
+  //     for (ScanResult result in results) {
+  //       String deviceName = result.device.localName;
+  //       print('>>> Found $deviceName');
+  //       if (deviceName != widget.deviceId &&
+  //           RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
+  //         deviceRssi[deviceName] = result.rssi;
+  //         // setState(() {});
+  //       }
+  //     }
+  //   });
+  //   print('>>> listen to Short Scan');
+  // }
+
+  // void scanForDevices() async {
+  //   // FlutterBluePlus.startScan();
+  //   if (FlutterBluePlus.isScanningNow == false) {
+  //     startShortScan();
+  //   } else {
+  //     print('>>> is scanning');
+  //   }
+  // }
 
   getLoc() async {
     bool _serviceEnabled;
@@ -660,7 +732,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
     _currentPosition = await location.getLocation();
     location.onLocationChanged.listen((LocationData currentLocation) {
-      print("${currentLocation.longitude} : ${currentLocation.longitude}");
+      print('${currentLocation.longitude} : ${currentLocation.longitude}');
       setState(() {
         _currentPosition = currentLocation;
       });
@@ -669,7 +741,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   connectToDevice() async {
     await widget.device.connect();
-    final snackBar = SnackBar(content: Text("Connected"));
+    final snackBar = SnackBar(content: Text('Connected'));
     snackBarKeyC.currentState?.showSnackBar(snackBar);
     discoverServices();
   }
@@ -678,9 +750,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
     List<BluetoothService> services = await widget.device.discoverServices();
     services.forEach((service) {
       // UUIDs for the UART service and its RX and TX characteristics
-      const uartServiceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
-      const rxCharacteristicUuid = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
-      const txCharacteristicUuid = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
+      const uartServiceUuid = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E';
+      const rxCharacteristicUuid = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E';
+      const txCharacteristicUuid = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E';
 
       if (service.uuid.toString().toUpperCase() == uartServiceUuid) {
         service.characteristics.forEach((characteristic) {
@@ -688,9 +760,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
               txCharacteristicUuid) {
             // Read and listen to changes to the TX characteristic
             characteristic.setNotifyValue(true);
-            print("Listen to service");
-            subscription = characteristic.lastValueStream.listen((value) async {
-              // String receivedData = "2175|(0,225,35)"; // Your received string.
+            print('Listen to service');
+            bleSubscription =
+                characteristic.lastValueStream.listen((value) async {
+              // String receivedData = '2175|(0,225,35)'; // Your received string.
               String localReceivedData = String.fromCharCodes(value);
 
               List<String> splitData = localReceivedData.split('|');
@@ -698,7 +771,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
               print('length: $l');
               print('Received $localReceivedData');
 
-              if (splitData.length > 2 && splitData[1] != "None") {
+              if (splitData.length > 2 && splitData[1] != 'None') {
                 String tempString =
                     splitData[0]; // String representation of TEMP*100.
 
@@ -728,6 +801,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   bat = _bat;
                 });
 
+                // cleanUpScanning();
+
                 final response = await http.get(
                   Uri.http(serverHost, '/addData', {
                     'moodid': widget.deviceId,
@@ -756,8 +831,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   // then throw an exception.
                   throw Exception('Failed to get data.');
                 }
+
+                print('>>> Try resetDevicesDataAndScan');
+                resetDevicesDataAndScan();
+
+                // // start background scan
+                // startShortScan();
               } else {
-                print("Invalid data received: $localReceivedData");
+                print('Invalid data received: $localReceivedData');
                 setState(() {
                   receivedData = localReceivedData;
                 });
@@ -793,13 +874,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   case BluetoothConnectionState.connected:
                     onPressed = () async {
                       try {
-                        await subscription?.cancel();
+                        await bleSubscription?.cancel();
+
+                        cleanUpScanning();
 
                         await widget.device.disconnect();
                       } catch (e) {
                         final snackBar = SnackBar(
                             content:
-                                Text(prettyException("Disconnect Error:", e)));
+                                Text(prettyException('Disconnect Error:', e)));
                         snackBarKeyC.currentState?.showSnackBar(snackBar);
                       }
                     };
@@ -813,7 +896,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                       } catch (e) {
                         final snackBar = SnackBar(
                             content:
-                                Text(prettyException("Connect Error:", e)));
+                                Text(prettyException('Connect Error:', e)));
                         snackBarKeyC.currentState?.showSnackBar(snackBar);
                       }
                     };
@@ -822,7 +905,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   default:
                     onPressed = null;
                     text =
-                        snapshot.data.toString().split(".").last.toUpperCase();
+                        snapshot.data.toString().split('.').last.toUpperCase();
                     break;
                 }
                 return TextButton(
@@ -882,8 +965,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                         subtitle: Text(_gyroscopeValues != null
                             ? _gyroscopeValues!
                                 .map((v) => v.toStringAsFixed(1))
-                                .join(", ")
-                            : "No data"),
+                                .join(', ')
+                            : 'No data'),
                       ),
                     ),
                   ],
@@ -1026,7 +1109,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                         await c.read();
 //                       } catch (e) {
 //                         final snackBar = SnackBar(
-//                             content: Text(prettyException("Read Error:", e)));
+//                             content: Text(prettyException('Read Error:', e)));
 //                         snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                       }
 //                     },
@@ -1039,7 +1122,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                         }
 //                       } catch (e) {
 //                         final snackBar = SnackBar(
-//                             content: Text(prettyException("Write Error:", e)));
+//                             content: Text(prettyException('Write Error:', e)));
 //                         snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                       }
 //                     },
@@ -1052,7 +1135,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                       } catch (e) {
 //                         final snackBar = SnackBar(
 //                             content:
-//                                 Text(prettyException("Subscribe Error:", e)));
+//                                 Text(prettyException('Subscribe Error:', e)));
 //                         snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                       }
 //                     },
@@ -1066,7 +1149,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                               } catch (e) {
 //                                 final snackBar = SnackBar(
 //                                     content: Text(
-//                                         prettyException("Read Error:", e)));
+//                                         prettyException('Read Error:', e)));
 //                                 snackBarKeyC.currentState
 //                                     ?.showSnackBar(snackBar);
 //                               }
@@ -1077,7 +1160,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                               } catch (e) {
 //                                 final snackBar = SnackBar(
 //                                     content: Text(
-//                                         prettyException("Write Error:", e)));
+//                                         prettyException('Write Error:', e)));
 //                                 snackBarKeyC.currentState
 //                                     ?.showSnackBar(snackBar);
 //                               }
@@ -1115,7 +1198,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                       } catch (e) {
 //                         final snackBar = SnackBar(
 //                             content:
-//                                 Text(prettyException("Disconnect Error:", e)));
+//                                 Text(prettyException('Disconnect Error:', e)));
 //                         snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                       }
 //                     };
@@ -1128,7 +1211,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                       } catch (e) {
 //                         final snackBar = SnackBar(
 //                             content:
-//                                 Text(prettyException("Connect Error:", e)));
+//                                 Text(prettyException('Connect Error:', e)));
 //                         snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                       }
 //                     };
@@ -1137,7 +1220,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                   default:
 //                     onPressed = null;
 //                     text =
-//                         snapshot.data.toString().split(".").last.toUpperCase();
+//                         snapshot.data.toString().split('.').last.toUpperCase();
 //                     break;
 //                 }
 //                 return TextButton(
@@ -1197,14 +1280,14 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                           index: (snapshot.data ?? false) ? 1 : 0,
 //                           children: <Widget>[
 //                             TextButton(
-//                               child: const Text("Get Services"),
+//                               child: const Text('Get Services'),
 //                               onPressed: () async {
 //                                 try {
 //                                   await device.discoverServices();
 //                                 } catch (e) {
 //                                   final snackBar = SnackBar(
 //                                       content: Text(prettyException(
-//                                           "Discover Services Error:", e)));
+//                                           'Discover Services Error:', e)));
 //                                   snackBarKeyC.currentState
 //                                       ?.showSnackBar(snackBar);
 //                                 }
@@ -1242,7 +1325,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //                         } catch (e) {
 //                           final snackBar = SnackBar(
 //                               content: Text(
-//                                   prettyException("Change Mtu Error:", e)));
+//                                   prettyException('Change Mtu Error:', e)));
 //                           snackBarKeyC.currentState?.showSnackBar(snackBar);
 //                         }
 //                       }),
@@ -1274,7 +1357,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 //       try {
 //         yield await device.readRssi();
 //       } catch (e) {
-//         print("Error reading RSSI: $e");
+//         print('Error reading RSSI: $e');
 //         break;
 //       }
 //       await Future.delayed(frequency);
