@@ -11,7 +11,6 @@ dependencies:
   cron: ^0.5.1
   flutter:
     sdk: flutter
-  flutter_blue: ^0.8.0
   flutter_blue_plus: ^1.12.10
   flutter_lints: ^1.0.4
   flutter_nfc_kit: ^3.3.1
