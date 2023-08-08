@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -22,9 +24,22 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NFCReaderUsageDescription</key>
+	<string>The app uses NFC to find, connect and transfer data between different media</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>The app uses bluetooth to find, connect and transfer data between different devices</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>The app uses bluetooth to find, connect and transfer data between different devices</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>GPS is used for locating the moody decies</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>GPS is used for locating the moody decies</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>bluetooth-central</string>
+		<string>processing</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
@@ -45,15 +60,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>The app uses bluetooth to find, connect and transfer data between different devices</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>The app uses bluetooth to find, connect and transfer data between different devices</string>
-	<key>NFCReaderUsageDescription</key>
-<string>The app uses NFC to find, connect and transfer data between different media</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-<string>GPS is used for locating the moody decies</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-<string>GPS is used for locating the moody decies</string>
 </dict>
 </plist>

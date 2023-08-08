@@ -24,7 +24,9 @@ final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyC = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyNFC = GlobalKey<ScaffoldMessengerState>();
 
-final String serverHost = '192.168.10.139:2000';
+//final String serverHost = '192.168.10.139:2000';
+final String serverHost = '134.122.18.168:2000';
+
 
 void main() {
   if (Platform.isAndroid) {
