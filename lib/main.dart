@@ -806,6 +806,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   bat = _bat;
                   // gradientColors.add(c);
                   gradientColors = List.from(gradientColors)..add(c);
+                  print('Colors after update: $gradientColors');
                 });
 
                 // cleanUpScanning();
