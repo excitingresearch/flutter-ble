@@ -797,9 +797,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 print(
                     '${widget.deviceId} >> Temperature: $localTemp, R: $_r, G: $_g, B: $_b, Battery: $_bat'); // Check the parsed values.
 
-                List<Color> updatedColors = List.from(gradientColors)..add(c);
+                List<Color> updatedColors = List.from(gradientColors)
+                  ..insert(0, c); // .add(c);
+
                 while (updatedColors.length > 50) {
-                  updatedColors.removeAt(0); // removes the first item
+                  updatedColors.removeLast(); // removes the first item
                 }
 
                 setState(() {
