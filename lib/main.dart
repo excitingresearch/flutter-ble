@@ -797,6 +797,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 print(
                     '${widget.deviceId} >> Temperature: $localTemp, R: $_r, G: $_g, B: $_b, Battery: $_bat'); // Check the parsed values.
 
+                List<Color> updatedColors = List.from(gradientColors)..add(c);
+                while (updatedColors.length > 50) {
+                  updatedColors.removeAt(0); // removes the first item
+                }
+
                 setState(() {
                   receivedData = localReceivedData;
                   temp = localTemp;
@@ -804,9 +809,11 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   g = _g;
                   b = _b;
                   bat = _bat;
+                  gradientColors = updatedColors;
+
                   // gradientColors.add(c);
-                  gradientColors = List.from(gradientColors)..add(c);
-                  print('Colors after update: $gradientColors');
+                  // gradientColors = List.from(gradientColors)..add(c);
+                  // print('Colors after update: $gradientColors');
                 });
 
                 // cleanUpScanning();
@@ -991,120 +998,117 @@ class _DeviceScreenState extends State<DeviceScreen> {
             )
           ],
         ),
-        body: Padding(
-          padding: EdgeInsets.all(10.0),
-          child: Container(
-            key: ValueKey(gradientColors.length),
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0.0, 0.0),
-                radius: 0.5,
-                colors: gradientColors,
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                SizedBox(height: 10),
-                Text('Your Title'),
-                Slider(
-                  value: sliderValue,
-                  min: 0,
-                  max: 100,
-                  onChanged: (double value) {
-                    setState(() {
-                      sliderValue = value;
-                    });
-                  },
-                ),
-                Switch(
-                  value: toggleValue,
-                  onChanged: (bool value) {
-                    setState(() {
-                      toggleValue = value;
-                    });
-                  },
-                ),
-                Text('Device ID: ${widget.device.localName}',
-                    style: TextStyle(fontSize: 10)),
-                Text('Temperature: $temp', style: TextStyle(fontSize: 24)),
-                SizedBox(height: 10),
-                Text('Battery: ${bat.toStringAsFixed(2)}',
-                    style: TextStyle(fontSize: 24)),
-                SizedBox(height: 10),
-              ],
+        body: Container(
+          key: ValueKey(gradientColors.length),
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0.0, 1.0),
+              radius: 0.5,
+              colors: gradientColors,
             ),
           ),
-          // child: Column(
-          //   children: [
-          //     Expanded(
-          //       child: ListView(
-          //         children: [
-          //           Card(
-          //             child: ListTile(
-          //               leading: Icon(Icons.network_check),
-          //               title: Text('Received Data'),
-          //               subtitle: Text('$receivedData'),
-          //             ),
-          //           ),
-          //           Card(
-          //             child: ListTile(
-          //               leading: Icon(Icons.thermostat_outlined),
-          //               title: Text('Temp'),
-          //               subtitle: Text('$temp °C'),
-          //             ),
-          //           ),
-          //           Card(
-          //             child: ListTile(
-          //               leading: Icon(Icons.color_lens),
-          //               title: Text('Color: '),
-          //               subtitle: Text('R: $r, G: $g, B: $b'),
-          //             ),
-          //           ),
-          //           //...More ListTile widgets for other values
-          //           Card(
-          //             child: ListTile(
-          //               leading: Icon(Icons.location_on),
-          //               title: Text('Position'),
-          //               subtitle: Text(
-          //                   'Latitude: ${_currentPosition?.latitude} \nLongitude: ${_currentPosition?.longitude}'),
-          //             ),
-          //           ),
-          //           Card(
-          //             child: ListTile(
-          //               leading: Icon(Icons.sensor_window),
-          //               title: Text('Gyro'),
-          //               subtitle: Text(_gyroscopeValues != null
-          //                   ? _gyroscopeValues!
-          //                       .map((v) => v.toStringAsFixed(1))
-          //                       .join(', ')
-          //                   : 'No data'),
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //     TextField(
-          //       controller: _txController,
-          //       decoration: InputDecoration(
-          //         filled: true,
-          //         fillColor: Colors.white,
-          //         border: OutlineInputBorder(),
-          //         labelText: 'Data to send',
-          //       ),
-          //     ),
-          //     ElevatedButton(
-          //       onPressed: () {
-          //         discoverServices(); // Calls the function to send the text
-          //       },
-          //       child: Text('Send'),
-          //       style: ElevatedButton.styleFrom(
-          //         backgroundColor: Theme.of(context).colorScheme.secondary,
-          //       ),
-          //     ),
-          //   ],
-          // ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              SizedBox(height: 10),
+              Text('Your Title'),
+              Slider(
+                value: sliderValue,
+                min: 0,
+                max: 100,
+                onChanged: (double value) {
+                  setState(() {
+                    sliderValue = value;
+                  });
+                },
+              ),
+              Switch(
+                value: toggleValue,
+                onChanged: (bool value) {
+                  setState(() {
+                    toggleValue = value;
+                  });
+                },
+              ),
+              Text('Device ID: ${widget.device.localName}',
+                  style: TextStyle(fontSize: 10)),
+              Text('Temperature: $temp', style: TextStyle(fontSize: 24)),
+              SizedBox(height: 10),
+              Text('Battery: ${bat.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 24)),
+              SizedBox(height: 10),
+            ],
+          ),
         ),
+        // child: Column(
+        //   children: [
+        //     Expanded(
+        //       child: ListView(
+        //         children: [
+        //           Card(
+        //             child: ListTile(
+        //               leading: Icon(Icons.network_check),
+        //               title: Text('Received Data'),
+        //               subtitle: Text('$receivedData'),
+        //             ),
+        //           ),
+        //           Card(
+        //             child: ListTile(
+        //               leading: Icon(Icons.thermostat_outlined),
+        //               title: Text('Temp'),
+        //               subtitle: Text('$temp °C'),
+        //             ),
+        //           ),
+        //           Card(
+        //             child: ListTile(
+        //               leading: Icon(Icons.color_lens),
+        //               title: Text('Color: '),
+        //               subtitle: Text('R: $r, G: $g, B: $b'),
+        //             ),
+        //           ),
+        //           //...More ListTile widgets for other values
+        //           Card(
+        //             child: ListTile(
+        //               leading: Icon(Icons.location_on),
+        //               title: Text('Position'),
+        //               subtitle: Text(
+        //                   'Latitude: ${_currentPosition?.latitude} \nLongitude: ${_currentPosition?.longitude}'),
+        //             ),
+        //           ),
+        //           Card(
+        //             child: ListTile(
+        //               leading: Icon(Icons.sensor_window),
+        //               title: Text('Gyro'),
+        //               subtitle: Text(_gyroscopeValues != null
+        //                   ? _gyroscopeValues!
+        //                       .map((v) => v.toStringAsFixed(1))
+        //                       .join(', ')
+        //                   : 'No data'),
+        //             ),
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //     TextField(
+        //       controller: _txController,
+        //       decoration: InputDecoration(
+        //         filled: true,
+        //         fillColor: Colors.white,
+        //         border: OutlineInputBorder(),
+        //         labelText: 'Data to send',
+        //       ),
+        //     ),
+        //     ElevatedButton(
+        //       onPressed: () {
+        //         discoverServices(); // Calls the function to send the text
+        //       },
+        //       child: Text('Send'),
+        //       style: ElevatedButton.styleFrom(
+        //         backgroundColor: Theme.of(context).colorScheme.secondary,
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ),
     );
   }
