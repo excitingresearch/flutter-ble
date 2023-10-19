@@ -935,6 +935,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double AR = screenHeight / screenWidth;
+
     return ScaffoldMessenger(
       key: snackBarKeyC,
       child: Scaffold(
@@ -1003,7 +1007,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           decoration: BoxDecoration(
             gradient: RadialGradient(
               center: const Alignment(0.0, 1.0),
-              radius: 0.5,
+              radius: AR, // 0.5,
               colors: gradientColors,
             ),
           ),
