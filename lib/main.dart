@@ -804,7 +804,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                   g = _g;
                   b = _b;
                   bat = _bat;
-                  gradientColors.add(c);
+                  // gradientColors.add(c);
+                  gradientColors = List.from(gradientColors)..add(c);
                 });
 
                 // cleanUpScanning();
