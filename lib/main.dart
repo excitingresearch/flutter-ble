@@ -992,6 +992,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         body: Padding(
           padding: EdgeInsets.all(10.0),
           child: Container(
+            key: ValueKey(gradientColors.length),
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 center: const Alignment(0.0, 0.0),
