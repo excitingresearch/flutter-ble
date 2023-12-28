@@ -729,7 +729,87 @@ class _DeviceScreenState extends State<DeviceScreen> {
               print('length: $l');
               print('Received $localReceivedData');
 
-              if (splitData.length > 2 && splitData[1] != 'None') {
+              //Received 1829|(0, 80, 174)
+// I/flutter (  724): Invalid data received: 1829|(0, 80, 174)
+
+              if (splitData.length == 2 && splitData[1] != 'None') {
+                String tempString =
+                    splitData[0]; // String representation of TEMP*100.
+
+                String rgbString = splitData[1]
+                    .replaceAll('(', '')
+                    .replaceAll(')', ''); // String representation of (R,G,B).
+
+                double localTemp = double.parse((tempString)) /
+                    100; // Divide by 100 to get the original temperature.
+
+                List<String> rgbStrings = rgbString.split(',');
+                int _r = int.parse(rgbStrings[0]);
+                int _g = int.parse(rgbStrings[1]);
+                int _b = int.parse(rgbStrings[2]);
+
+                Color c = Color.fromARGB(255, _r, _g, _b);
+
+                double _bat = 0.0; //double.parse(splitData[2]);
+
+                print(
+                    '${widget.deviceId} >> Temperature: $localTemp, R: $_r, G: $_g, B: $_b, Battery: $_bat'); // Check the parsed values.
+
+                List<Color> updatedColors = List.from(gradientColors)
+                  ..insert(0, c); // .add(c);
+
+                while (updatedColors.length > 50) {
+                  updatedColors.removeLast(); // removes the first item
+                }
+
+                setState(() {
+                  receivedData = localReceivedData;
+                  temp = localTemp;
+                  r = _r;
+                  g = _g;
+                  b = _b;
+                  bat = _bat;
+                  gradientColors = updatedColors;
+
+                  // gradientColors.add(c);
+                  // gradientColors = List.from(gradientColors)..add(c);
+                  // print('Colors after update: $gradientColors');
+                });
+
+                // cleanUpScanning();
+
+                final response = await http.get(
+                  Uri.http(serverHost, '/addData', {
+                    'moodid': widget.deviceId,
+                    'temperature': localTemp.toStringAsFixed(2),
+                    'battery': _bat.toStringAsFixed(2),
+                    'color': jsonEncode([_r, _g, _b]),
+                    'excitement': '0',
+                    'location': jsonEncode([
+                      _currentPosition?.latitude,
+                      _currentPosition?.longitude
+                    ]),
+                    'proximity': jsonEncode(deviceRssi.entries
+                        .map((entry) =>
+                            {'id': entry.key, 'distance': entry.value})
+                        .toList()),
+                    'gyro': jsonEncode(_gyroscopeValues),
+                  }),
+                );
+
+                if (response.statusCode == 200) {
+                  // If the server returns a 200 OK response,
+                  // then parse the JSON.
+                  print('Response data: ${(response.body)}');
+                } else {
+                  // If the server did not return a 200 OK response,
+                  // then throw an exception.
+                  throw Exception('Failed to get data.');
+                }
+
+                print('>>> Try resetDevicesDataAndScan');
+                resetDevicesDataAndScan();
+              } else if (splitData.length > 2 && splitData[1] != 'None') {
                 String tempString =
                     splitData[0]; // String representation of TEMP*100.
 
