@@ -6,9 +6,9 @@ What works:
 - power on / off
 - neopixel
 - wifi 
+- battery
 
 TODO:
-- battery
 - (fw update)
 - Standalone mode
 
@@ -24,7 +24,7 @@ transistor voor sensoren 3.3V gestuurd via de power schakelaar ook > https://aos
 #define NEOPIXEL_PIN D10
 #define TEMP_PWM_PIN D8
 #define WAKE_UP_PIN D1
-#define BATTERY_PIN D0
+#define BATTERY_PIN A2
 
 #define SCAN_WIFI false
 #define DEBUG_MODE true
@@ -42,7 +42,7 @@ void setup() {
 #ifdef DEBUG_MODE
   Serial.begin(115200);
 #endif
-  pinMode(A2, INPUT);         // ADC
+  pinMode(BATTERY_PIN, INPUT);         // ADC
 
   delay(500);
   setup_neopixel();

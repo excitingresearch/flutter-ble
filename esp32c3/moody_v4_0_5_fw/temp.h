@@ -99,7 +99,7 @@ void loop_temp() {
     // debugPrintln("Temp: " + String(temperature));
     uint32_t Vbatt = 0;
     for (int i = 0; i < 16; i++) {
-      Vbatt = Vbatt + analogReadMilliVolts(A2);  // ADC with correction
+      Vbatt = Vbatt + analogReadMilliVolts(BATTERY_PIN);  // ADC with correction
     }
     float Vbattf = 2 * Vbatt / 16 / 1000.0;  // attenuation ratio 1/2, mV --> V
     // Calculate and print statistics
@@ -108,8 +108,6 @@ void loop_temp() {
     debugPrint(millis() / 1000);
     debugPrint("s BAT: ");
     Serial.print(Vbattf, 3);
-
-    // debugPrint((analogReadMilliVolts(A2) / 4095.0) * 3.3 );
     debugPrint("V Min: ");
     debugPrint(temperature);
     debugPrint(" Min: ");
