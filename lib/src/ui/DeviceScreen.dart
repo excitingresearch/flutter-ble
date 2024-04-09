@@ -105,8 +105,10 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   void _connectToDevice(BluetoothDevice device) async {
+    print("connecting to device");
     try {
       await device.connect();
+      print('Connected to ${device.localName}');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Connected to ${device.localName}'),
@@ -114,6 +116,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
       );
       // Navigate to another screen or perform other actions upon connection
     } catch (e) {
+      print('Failed to connect to ${device.localName}');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to connect to ${device.localName}: $e'),

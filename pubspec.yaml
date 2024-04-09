@@ -19,6 +19,7 @@ dependencies:
   http: ^0.13.6
   intl: ^0.17.0
 
+  keep_screen_on: ^3.0.0
   location: ^5.0.2+1
   permission_handler: ^10.4.3
   provider: ^6.0.1
