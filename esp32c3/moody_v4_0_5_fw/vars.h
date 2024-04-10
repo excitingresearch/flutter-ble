@@ -32,3 +32,9 @@ volatile int c = 0;
 volatile int T = 0.0;
 volatile float d = 0.0;
 volatile int ttteeempp = 0;
+
+
+byte current_rgb[] = { 0, 0, 0 };
+byte target_rgb[] = { 0, 0, 0 };
+unsigned long target_rgb_start = 0;
+unsigned long last_rgb_loop = 0;

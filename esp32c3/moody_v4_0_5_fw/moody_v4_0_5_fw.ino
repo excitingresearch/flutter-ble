@@ -56,5 +56,6 @@ void setup() {
 void loop() {
   loop_sleep();
   loop_temp();
+  neopixel_loop();
   loop_ble();
 }

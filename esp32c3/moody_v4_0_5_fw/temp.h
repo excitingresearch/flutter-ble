@@ -23,10 +23,10 @@ byte rgb_g = 0;
 byte rgb_b = 0;
 
 void setup_watchdog() {
-  timer = timerBegin(0, 80, true);                  //timer 0, div 80
-  timerAttachInterrupt(timer, &resetModule, true);  //attach callback
-  timerAlarmWrite(timer, wdtTimeout * 1000, false); //set time in us
-  timerAlarmEnable(timer);    
+  timer = timerBegin(0, 80, true);                   //timer 0, div 80
+  timerAttachInterrupt(timer, &resetModule, true);   //attach callback
+  timerAlarmWrite(timer, wdtTimeout * 1000, false);  //set time in us
+  timerAlarmEnable(timer);
 }
 
 void loop_temp() {
@@ -55,7 +55,7 @@ void loop_temp() {
 
 
   if (millis() - lastPrint > 500) {
-      timerWrite(timer, 0); //reset timer (feed watchdog)
+    timerWrite(timer, 0);  //reset timer (feed watchdog)
 
     float temperature = t_avg / float(t_c);
 
@@ -128,9 +128,9 @@ void loop_temp() {
     debugPrint(millis() / 1000);
     debugPrint("s BAT: ");
     Serial.print(Vbattf, 3);
-    debugPrint("V Min: ");
+    debugPrint("V Cur: ");
     debugPrint(temperature);
-    debugPrint(" Min: ");
+    debugPrint("°C Min: ");
     debugPrint(tempMin);
     debugPrint(", Max: ");
     debugPrint(tempMax);
@@ -170,9 +170,21 @@ void loop_temp() {
       rgb_b = p * 255;
     }
 
-    pixels.setPixelColor(0, pixels.Color(rgb_r, rgb_g, rgb_b));
+    // pixels.setPixelColor(0, pixels.Color(rgb_r, rgb_g, rgb_b));
 
-    pixels.show();
+    // pixels.show();
+
+    // current_rgb = target_rgb;
+    current_rgb[0] = target_rgb[0];
+    current_rgb[1] = target_rgb[1];
+    current_rgb[2] = target_rgb[2];
+
+    target_rgb[0] = rgb_r;
+    target_rgb[1] = rgb_g;
+    target_rgb[2] = rgb_b;
+
+    target_rgb_start = millis();
+    last_rgb_loop = 0;
 
     debugPrint(", R: ");
     debugPrint(rgb_r);
@@ -180,7 +192,7 @@ void loop_temp() {
     debugPrint(rgb_g);
     debugPrint(", B: ");
     debugPrintln(rgb_b);
-    ble_send(String(temperature) + "|" + String(rgb_r) + "," + String(rgb_g) + "," + String(rgb_b) + "|" + String(round(Vbattf*1000)/1000.0));
+    ble_send(String(temperature) + "|" + String(rgb_r) + "," + String(rgb_g) + "," + String(rgb_b) + "|" + String(round(Vbattf * 1000) / 1000.0));
 
     t_avg = 0.0;
     t_c = 0;
