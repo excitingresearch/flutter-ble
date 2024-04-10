@@ -40,14 +40,6 @@ void loop_temp() {
       d -= 1;
     if (d < 1) {
       float temperature = 212.77 * d - 68.085;
-      //   debugPrint("t: ");
-      //   debugPrint(t);
-      //   debugPrint(" h: ");
-      //   debugPrint(h);
-      //   debugPrint(" h/t: ");
-      //   debugPrint(d);
-      //   debugPrint(" temperature: ");
-      //   debugPrintln(temperature);
       t_avg += temperature;
       t_c++;
     }
@@ -70,18 +62,6 @@ void loop_temp() {
 
     if (rc <= current_buffer_size)
       rc++;
-
-    // if (temperature < 20.0) {
-    //   pixels.setPixelColor(0, pixels.Color(0, 0, 255));
-    // } else if (temperature < 25.0) {
-    //   pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-    // } else {
-    //   pixels.setPixelColor(0, pixels.Color(255, 0, 0));
-    // }
-
-    // pixels.show();
-
-
 
 
     if (tempMin == temperatureBuffer[bufferIndex]) {
@@ -159,22 +139,15 @@ void loop_temp() {
     debugPrint(", c2: ");
     debugPrint(255 - (p * 255));
     if (temperature > tempAvg) {
-      // pixels.setPixelColor(0, pixels.Color(p * 255, 255 - (p * 255), 0));
       rgb_r = p * 255;
       rgb_g = 255 - (p * 255);
       rgb_b = 0;
     } else {
-      // pixels.setPixelColor(0, pixels.Color(0, 255 - (p * 255), p * 255));
       rgb_r = 0;
       rgb_g = 255 - (p * 255);
       rgb_b = p * 255;
     }
 
-    // pixels.setPixelColor(0, pixels.Color(rgb_r, rgb_g, rgb_b));
-
-    // pixels.show();
-
-    // current_rgb = target_rgb;
     current_rgb[0] = target_rgb[0];
     current_rgb[1] = target_rgb[1];
     current_rgb[2] = target_rgb[2];

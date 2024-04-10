@@ -31,12 +31,7 @@ transistor voor sensoren 3.3V gestuurd via de power schakelaar ook > https://aos
 
 #define MAX_BUFFER_SIZE 3 * 60 * 60 * 2  // 3h times 60m times 60s times 2timespersecond
 
-#include "vars.h"
-#include "neopixel.h"
-#include "power_mgmt.h"
-#include "ota.h"
-#include "ble_uart.h"
-#include "temp.h"
+#include "includes.h"
 
 void setup() {
 #ifdef DEBUG_MODE

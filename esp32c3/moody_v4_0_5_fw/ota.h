@@ -3,11 +3,6 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-// const char *target_ssid = "moody-admin";  // Replace with your target SSID
-// const char *target_pw = "moody-pw";       // Replace with your target SSID
-const char *target_ssid = "A7 cave iot";  // Replace with your target SSID
-const char *target_pw = "7keerzeven";       // Replace with your target SSID
-
 bool ota_enabled = false;
 
 
@@ -20,11 +15,7 @@ void setup_ota() {
   // Serial.println("Booting");
   // WiFi.mode(WIFI_STA);
   // WiFi.begin(ssid, password);
-  // while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-  //   Serial.println("Connection Failed! Rebooting...");
-  //   delay(5000);
-  //   ESP.restart();
-  // }
+
 
   // Port defaults to 3232
   // ArduinoOTA.setPort(3232);
@@ -92,15 +83,27 @@ void scan_and_try_connect() {
     debugPrintln("Target network found! Connecting...");
     // Add your WiFi credentials if not saved previously
     WiFi.begin(target_ssid, target_pw);
-
-    while (WiFi.status() != WL_CONNECTED) {
+    unsigned long wifi_connect_start = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - wifi_connect_start < 7500) {
       delay(500);
       debugPrint(".");
     }
-    debugPrintln("\nWiFi connected!");
-    debugPrintln("IP address: ");
-    debugPrintln(WiFi.localIP());
-    setup_ota();
+
+    if (WiFi.status() != WL_CONNECTED) {
+      debugPrintln("WiFi Connection Failed! ");  // Rebooting... ?
+      delay(1000);
+      WiFi.disconnect(true, false);
+      WiFi.mode(WIFI_OFF);
+      // ESP.restart();
+    } else {
+
+      debugPrintln("\nWiFi connected!");
+      debugPrintln("IP address: ");
+      debugPrintln(WiFi.localIP());
+      setup_ota();
+    }
+
+
   } else {
     debugPrintln("Target network not found. Turning WiFi off.");
     WiFi.mode(WIFI_OFF);
