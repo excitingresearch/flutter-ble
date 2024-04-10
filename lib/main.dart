@@ -109,11 +109,34 @@ class _FirstScreenState extends State<FirstScreen> {
             print(lastFourBytes);
             print('Payload: $payloadAsString');
 
-            if (!found && moodyDeviceNameRegExp.hasMatch(payloadAsString)) {
+            if (!found &&
+                moodyDeviceNameRegExp.hasMatch(payloadAsString.toUpperCase())) {
               found = true;
               if (mounted) {
                 setState(() {
                   _deviceIdController.text = payloadAsString;
+                  polling = false;
+                });
+              }
+            }
+
+            Uint8List lastTenBytes =
+                record.payload.sublist(record.payload.length - 10);
+
+            String payloadasstringNewId = String.fromCharCodes(lastTenBytes);
+
+            // print(record.toString());
+            // print(record.payload);
+            print(lastTenBytes);
+            print('Payload: $payloadasstringNewId');
+
+            if (!found &&
+                moodyDeviceNameRegExp
+                    .hasMatch(payloadasstringNewId.toUpperCase())) {
+              found = true;
+              if (mounted) {
+                setState(() {
+                  _deviceIdController.text = payloadasstringNewId;
                   polling = false;
                 });
               }
@@ -199,7 +222,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 ElevatedButton(
                   child: Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
-                          moodyDeviceNameRegExp.hasMatch(deviceId)
+                          moodyDeviceNameRegExp.hasMatch(deviceId.toUpperCase())
                       ? () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -611,7 +634,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           String deviceName = result.device.localName;
           print('>>> Found $deviceName with rssi: ${result.rssi}');
           if (deviceName != widget.deviceId &&
-              moodyDeviceNameRegExp.hasMatch(deviceName)) {
+              moodyDeviceNameRegExp.hasMatch(deviceName.toUpperCase())) {
             deviceRssi[deviceName] = result.rssi;
             // if (mounted)
             // setState(() {});
