@@ -34,8 +34,8 @@ transistor voor sensoren 3.3V gestuurd via de power schakelaar ook > https://aos
 #include "vars.h"
 #include "neopixel.h"
 #include "power_mgmt.h"
-#include "ble_uart.h"
 #include "ota.h"
+#include "ble_uart.h"
 #include "temp.h"
 
 void setup() {

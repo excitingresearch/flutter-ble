@@ -3,6 +3,7 @@
 #include <BLEServer.h>
 #include <BLEUtils.h>
 #include <BLE2902.h>
+// #include <EEPROM.h>
 
 BLEServer *pServer = NULL;
 BLECharacteristic *pTxCharacteristic;
@@ -57,15 +58,95 @@ class MyCallbacks : public BLECharacteristicCallbacks {
 };
 
 
+// String loadOrStoreName() {
+//   String name;
+//   const int addressStart = 0;  // Starting address in EEPROM
+//   const int nameLength = 10;   // Length of the name
+
+//   EEPROM.begin(512);  // Adjust size as needed
+//   // Try to load the name from EEPROM
+//   bool hasName = true;
+//   for (int i = 0; i < nameLength; i++) {
+//     char storedChar = EEPROM.read(addressStart + i);
+//     if (storedChar == 0 || storedChar == 255) {
+//       hasName = false;
+//       break;
+//     }
+//     name += storedChar;
+//   }
+
+//   // If the name was not in EEPROM, store it
+//   if (!hasName) {
+
+//     // BLEDevice::init("moody-flashed");
+//     String address = WiFi.macAddress().c_str();
+//     //BLEDevice::getAddress().toString().c_str();
+//     address.toUpperCase();
+//     debugPrintln("NO STORED NAME");
+//     debugPrintln(address);
+
+//     String name = "Moody ";
+//     name += address[address.length() - 5];
+//     name += address[address.length() - 4];
+//     name += address[address.length() - 2];
+//     name += address[address.length() - 1];
+//     // name = "";
+//     // name += address[address.length() - 5];
+//     // name += address[address.length() - 4];
+//     // name += address[address.length() - 2];
+//     // name += address[address.length() - 1];
+
+//     // Store the name
+//     for (int i = 0; i < nameLength; i++) {
+//       EEPROM.write(addressStart + i, name[i]);
+//     }
+//     EEPROM.commit();
+//     delay(10);
+//     // EEPROM.end();
+//     // delay(10);
+//     // ESP.restart();
+//   }
+//   EEPROM.end();
+//   delay(10);
+//   return name;
+// }
+
+
 /** MAIN **/
 void setup_ble() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
+
+  // String name = loadOrStoreName();
+  // // Serial.print("name = ");
+  String MAC_address = WiFi.macAddress().c_str();
+  //BLEDevice::getAddress().toString().c_str();
+  MAC_address.toUpperCase();
+  debugPrint("MAC_address: ");
+  debugPrintln(MAC_address);
+
+  String BLE_device_name = "Moody ";
+  BLE_device_name += MAC_address[MAC_address.length() - 5];
+  BLE_device_name += MAC_address[MAC_address.length() - 4];
+  BLE_device_name += MAC_address[MAC_address.length() - 2];
+  BLE_device_name += MAC_address[MAC_address.length() - 1];
+
+  debugPrint("BLE_device_name = ");
+  debugPrintln(BLE_device_name);
+
+  // delay(500);
+  BLEDevice::init(BLE_device_name.c_str());
+  debugPrintln("ble initted");
 
   // Create the BLE Device
-  BLEDevice::init(BleDeviceName);
+  // BLEDevice::init(BleDeviceName);
 
   // Get the MAC address
   String address = BLEDevice::getAddress().toString().c_str();
+  // name = "Squeezi-";
+  // name += address[address.length() - 5];
+  // name += address[address.length() - 4];
+  // name += address[address.length() - 2];
+  // name += address[address.length() - 1];
 
   // Print the MAC address
   debugPrint("BLE MAC Address: ");
