@@ -45,6 +45,7 @@ void check_sleep() {
   if (digitalRead(D1) == 0) {
     //Go to sleep now
     debugPrintln("Going to sleep now");
+    powerOffSequence();
     esp_deep_sleep_start();
   }
 }

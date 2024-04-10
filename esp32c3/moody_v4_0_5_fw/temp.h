@@ -1,3 +1,13 @@
+#include "esp_system.h"
+
+const int button = 0;         //gpio to use to trigger delay
+const int wdtTimeout = 1000;  //time in ms to trigger the watchdog
+hw_timer_t *timer = NULL;
+
+void ARDUINO_ISR_ATTR resetModule() {
+  ets_printf("reboot\n");
+  esp_restart();
+}
 
 
 
@@ -11,6 +21,14 @@ float tempMax = 0;   // Initialize with lowest possible float
 byte rgb_r = 0;
 byte rgb_g = 0;
 byte rgb_b = 0;
+
+void setup_watchdog() {
+  timer = timerBegin(0, 80, true);                  //timer 0, div 80
+  timerAttachInterrupt(timer, &resetModule, true);  //attach callback
+  timerAlarmWrite(timer, wdtTimeout * 1000, false); //set time in us
+  timerAlarmEnable(timer);    
+}
+
 void loop_temp() {
 
   if (high_time_prev_trig != 0 && high_time_trig != 0 && low_time_trig != 0 && last_prev_val_parsed != high_time_prev_trig) {
@@ -37,6 +55,8 @@ void loop_temp() {
 
 
   if (millis() - lastPrint > 500) {
+      timerWrite(timer, 0); //reset timer (feed watchdog)
+
     float temperature = t_avg / float(t_c);
 
 
