@@ -28,6 +28,9 @@ final snackBarKeyNFC = GlobalKey<ScaffoldMessengerState>();
 //final String serverHost = '192.168.10.139:2000';
 final String serverHost = '134.122.18.168:2000';
 
+// final RegExp moodyDeviceNameRegExp = RegExp(r'^m\d{3}$');
+final RegExp moodyDeviceNameRegExp = RegExp(
+    r'^(m\d{3}|MOODY_[0-9A-F]{4})$'); // new firmware auto generated device names from MAC
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -106,7 +109,7 @@ class _FirstScreenState extends State<FirstScreen> {
             print(lastFourBytes);
             print('Payload: $payloadAsString');
 
-            if (!found && RegExp(r'^m\d{3}$').hasMatch(payloadAsString)) {
+            if (!found && moodyDeviceNameRegExp.hasMatch(payloadAsString)) {
               found = true;
               if (mounted) {
                 setState(() {
@@ -196,7 +199,7 @@ class _FirstScreenState extends State<FirstScreen> {
                 ElevatedButton(
                   child: Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
-                          RegExp(r'^m\d{3}$').hasMatch(deviceId)
+                          moodyDeviceNameRegExp.hasMatch(deviceId)
                       ? () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -608,7 +611,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
           String deviceName = result.device.localName;
           print('>>> Found $deviceName with rssi: ${result.rssi}');
           if (deviceName != widget.deviceId &&
-              RegExp(r'^m\d{3}$').hasMatch(deviceName)) {
+              moodyDeviceNameRegExp.hasMatch(deviceName)) {
             deviceRssi[deviceName] = result.rssi;
             // if (mounted)
             // setState(() {});
