@@ -26,7 +26,7 @@ transistor voor sensoren 3.3V gestuurd via de power schakelaar ook > https://aos
 #define WAKE_UP_PIN D1
 #define BATTERY_PIN A2
 
-#define SCAN_WIFI false
+#define SCAN_WIFI_AND_OTA true
 #define DEBUG_MODE true
 
 #define MAX_BUFFER_SIZE 3 * 60 * 60 * 2  // 3h times 60m times 60s times 2timespersecond
@@ -45,7 +45,8 @@ void setup() {
   pinMode(BATTERY_PIN, INPUT);  // ADC
   delay(500);
   setup_neopixel();
-  if (SCAN_WIFI) {
+  set_device_name();
+  if (SCAN_WIFI_AND_OTA) {
     scan_and_try_connect();
   }
   setup_sleep();
@@ -54,6 +55,7 @@ void setup() {
 }
 
 void loop() {
+  loop_ota();
   loop_sleep();
   loop_temp();
   neopixel_loop();

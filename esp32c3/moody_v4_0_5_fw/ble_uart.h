@@ -115,24 +115,7 @@ class MyCallbacks : public BLECharacteristicCallbacks {
 /** MAIN **/
 void setup_ble() {
   // Serial.begin(115200);
-
-  // String name = loadOrStoreName();
-  // // Serial.print("name = ");
-  String MAC_address = WiFi.macAddress().c_str();
-  //BLEDevice::getAddress().toString().c_str();
-  MAC_address.toUpperCase();
-  debugPrint("MAC_address: ");
-  debugPrintln(MAC_address);
-
-  String BLE_device_name = "Moody ";
-  BLE_device_name += MAC_address[MAC_address.length() - 5];
-  BLE_device_name += MAC_address[MAC_address.length() - 4];
-  BLE_device_name += MAC_address[MAC_address.length() - 2];
-  BLE_device_name += MAC_address[MAC_address.length() - 1];
-
-  debugPrint("BLE_device_name = ");
-  debugPrintln(BLE_device_name);
-
+  // check_device_name();
   // delay(500);
   BLEDevice::init(BLE_device_name.c_str());
   debugPrintln("ble initted");
