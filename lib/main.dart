@@ -1081,7 +1081,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
               ),
               Text('Device ID: ${widget.device.localName}',
                   style: TextStyle(fontSize: 10)),
-              Text('Temperature: ${(temp * 100).toStringAsFixed(2)}°C',
+              Text(
+                  'Temperature: ${(temp < 1 ? temp * 100 : temp).toStringAsFixed(2)}°C',
                   style: TextStyle(fontSize: 24)),
               SizedBox(height: 10),
               Text('Battery: ${bat.toStringAsFixed(2)}',
