@@ -30,7 +30,7 @@ final String serverHost = '134.122.18.168:2000';
 
 // final RegExp moodyDeviceNameRegExp = RegExp(r'^m\d{3}$');
 final RegExp moodyDeviceNameRegExp = RegExp(
-    r'^(m\d{3}|MOODY_[0-9A-F]{4})$'); // new firmware auto generated device names from MAC
+    r'^([mM][0-9]{3}|MOODY_[0-9A-F]{4})$'); // new firmware auto generated device names from MAC
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -206,6 +206,8 @@ class _FirstScreenState extends State<FirstScreen> {
                         textAlign: TextAlign.center,
                         onChanged: (value) {
                           isManualEntry = value.isNotEmpty;
+                          // print(
+                          //     "change $value, ${moodyDeviceNameRegExp.hasMatch(value.toUpperCase())}");
                           if (mounted) {
                             setState(
                                 () {}); // To ensure the button's onPressed status gets updated.

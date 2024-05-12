@@ -84,11 +84,18 @@ void scan_and_try_connect() {
     // Add your WiFi credentials if not saved previously
     WiFi.begin(target_ssid, target_pw);
     unsigned long wifi_connect_start = millis();
+    bool led_on = true;
+
     while (WiFi.status() != WL_CONNECTED && millis() - wifi_connect_start < 7500) {
+      led_on = !led_on;
+      pixels.setBrightness(led_on * MAX_BRIGHTNESS);
+      pixels.show();
       delay(500);
       debugPrint(".");
     }
 
+    pixels.setBrightness(MAX_BRIGHTNESS);
+    pixels.show();
     if (WiFi.status() != WL_CONNECTED) {
       debugPrintln("WiFi Connection Failed! ");  // Rebooting... ?
       delay(1000);

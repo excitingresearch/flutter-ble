@@ -23,7 +23,7 @@ transistor voor sensoren 3.3V gestuurd via de power schakelaar ook > https://aos
 
 #define NEOPIXEL_PIN D10
 #define TEMP_PWM_PIN D8
-#define WAKE_UP_PIN D1
+#define WAKE_UP_PIN D0
 #define BATTERY_PIN A2
 
 #define SCAN_WIFI_AND_OTA true
@@ -37,6 +37,7 @@ void setup() {
 #ifdef DEBUG_MODE
   Serial.begin(115200);
 #endif
+  setup_sleep();
   pinMode(BATTERY_PIN, INPUT);  // ADC
   delay(500);
   setup_neopixel();
@@ -44,7 +45,6 @@ void setup() {
   if (SCAN_WIFI_AND_OTA) {
     scan_and_try_connect();
   }
-  setup_sleep();
   setup_ble();
   setup_watchdog();
 }

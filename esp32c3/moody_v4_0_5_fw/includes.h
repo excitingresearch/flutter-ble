@@ -21,6 +21,9 @@ byte target_rgb[] = { 0, 0, 0 };
 unsigned long target_rgb_start = 0;
 unsigned long last_rgb_loop = 0;
 
+const int button = 0;         //gpio to use to trigger delay
+const int wdtTimeout = 1000;  //time in ms to trigger the watchdog
+hw_timer_t *timer = NULL;
 
 #ifdef DEBUG_MODE
 #define debugPrint(x) Serial.print(x)

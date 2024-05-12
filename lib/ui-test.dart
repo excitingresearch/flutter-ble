@@ -78,14 +78,18 @@ class Particle {
       : position = direction == 'up'
             ? Offset(random.nextDouble() * 300, 400)
             : Offset(random.nextDouble() * 300, 0),
-        color = Color.fromARGB(
-          255,
-          random.nextInt(255),
-          random.nextInt(255),
-          random.nextInt(255),
-        ),
+        color = direction == 'up'
+            ? Color.fromARGB(255, 0, 0, 255)
+            : Color.fromARGB(255, 255, 0, 0),
+
+//         color = Color.fromARGB(
+//           255,
+//           random.nextInt(255),
+//           random.nextInt(255),
+//           random.nextInt(255),
+//         ),
         speed = 1.0,
-        radius = 5 + random.nextDouble() * 10,
+        radius = 15, //5 + random.nextDouble() * 10,
         opacity = 1.0;
 }
 
@@ -104,12 +108,13 @@ class ParticlePainter extends CustomPainter {
       particle.position += particle.direction == 'up'
           ? Offset(0, -1 * particle.speed)
           : Offset(0, 1 * particle.speed);
-      particle.opacity -= 0.0001; // Slower fade out
+      particle.opacity -= 0.003; // Slower fade out
     }
     // Approximate Collision Logic
     for (int i = 0; i < particles.length; i++) {
       for (int j = i + 1; j < particles.length; j++) {
-        if ((particles[i].position - particles[j].position).distance < 30) {
+        if (particles[i].direction != particles[j].direction &&
+            (particles[i].position - particles[j].position).distance < 30) {
           // Collision approximation
 
           // Updated color (interpolation)
@@ -119,6 +124,8 @@ class ParticlePainter extends CustomPainter {
           // Optional - increase size slightly
           particles[i].radius += 2;
           particles[i].speed = 0;
+          particles[i].opacity += 0.015;
+          particles[i].direction = 'static';
           // Remove the other particle
           particles.removeAt(j);
         }

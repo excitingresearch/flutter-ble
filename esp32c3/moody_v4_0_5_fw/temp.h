@@ -1,8 +1,5 @@
 #include "esp_system.h"
-
-const int button = 0;         //gpio to use to trigger delay
-const int wdtTimeout = 1000;  //time in ms to trigger the watchdog
-hw_timer_t *timer = NULL;
+#include "math.h"
 
 void ARDUINO_ISR_ATTR resetModule() {
   ets_printf("reboot\n");
@@ -53,7 +50,7 @@ void loop_temp() {
 
 
 
-    if (millis() < 2000 || temperature < 15 || temperature > 40) {
+    if (isnan(temperature) || millis() < 2000 || temperature < 15 || temperature > 40) {
       t_avg = 0.0;
       t_c = 0;
       lastPrint = millis();

@@ -1,3 +1,4 @@
+#include "esp32-hal-timer.h"
 
 #define BUTTON_PIN_BITMASK 0x200000000  // 2^33 in hex
 
@@ -37,16 +38,42 @@ void print_wakeup_reason() {
     case ESP_SLEEP_WAKEUP_TIMER: debugPrintln("Wakeup caused by timer"); break;
     case ESP_SLEEP_WAKEUP_TOUCHPAD: debugPrintln("Wakeup caused by touchpad"); break;
     case ESP_SLEEP_WAKEUP_ULP: debugPrintln("Wakeup caused by ULP program"); break;
-    default: debugPrint("Wakeup was not caused by deep sleep: \n");debugPrintln(wakeup_reason); break;
+    default:
+      debugPrint("Wakeup was not caused by deep sleep: \n");
+      debugPrintln(wakeup_reason);
+      break;
   }
 }
 
 void check_sleep() {
-  if (digitalRead(D1) == 0) {
-    //Go to sleep now
-    debugPrintln("Going to sleep now");
-    powerOffSequence();
-    esp_deep_sleep_start();
+  if (digitalRead(WAKE_UP_PIN) == 0) {
+    delay(15); // debounce
+    if (digitalRead(WAKE_UP_PIN) == 0) {
+      //Go to sleep now
+      debugPrintln("Going to sleep now");
+
+      // pixels.setBrightness(0);
+      // debugPrint("brightness: ");
+      // debugPrintln(0);
+      // pixels.show();
+      // debugPrintln("Going to sleep now");
+      // delay(150);
+      // // timerAlarmEnable(timer);
+      // // timerAlarmDisable(timer);
+      // delay(100);
+      // powerOffSequence();
+      // debugPrintln("End going to sleep");
+      // while (digitalRead(WAKE_UP_PIN) == 0) {
+      //   delay(500);
+      //   debugPrintln("sleeping");
+      //   timerWrite(timer, 0);  //reset timer (feed watchdog)
+      // }
+      // timerWrite(timer, 0);  //reset timer (feed watchdog)
+
+      // debugPrintln("wakeup");
+      delay(50);
+      esp_deep_sleep_start();
+    }
   }
 }
 
@@ -57,7 +84,7 @@ void loop_sleep() {
 
 void setup_sleep() {
 
-  // delay(1000);  //Take some time to open up the Serial Monitor
+  delay(1000);  //Take some time to open up the Serial Monitor
 
   //Increment boot number and print it every reboot
   ++bootCount;

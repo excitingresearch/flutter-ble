@@ -35,10 +35,20 @@ void powerOffSequence() {
     uint8_t b = map(i, 2 * numSteps / 3, numSteps, 255, 0);  // Blue fades in, then out
 
     pixels.setPixelColor(0, r, g, b);
-    pixels.setBrightness(i * MAX_BRIGHTNESS / numSteps);
+    pixels.setBrightness(i * MAX_BRIGHTNESS / float(numSteps));
+    // debugPrint("brightness: ");
+    // debugPrintln(i * MAX_BRIGHTNESS / numSteps);
     pixels.show();
-    delay(duration / numSteps);
+    delay(duration / float(numSteps));
+    // delay(100);
+    // timerWrite(timer, 0);  //reset timer (feed watchdog)
   }
+  // delay(500);
+  // timerWrite(timer, 0);  //reset timer (feed watchdog)
+  // delay(500);
+  // timerWrite(timer, 0);  //reset timer (feed watchdog)
+  // delay(500);
+  // timerWrite(timer, 0);  //reset timer (feed watchdog)
 }
 
 void neopixel_loop() {
