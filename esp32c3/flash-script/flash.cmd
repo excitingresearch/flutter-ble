@@ -44,5 +44,3 @@ pause
 
 :abort
 echo abort
-pause
-EXIT /B 1
