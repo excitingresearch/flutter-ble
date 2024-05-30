@@ -30,7 +30,7 @@ final String serverHost = '134.122.18.168:2000';
 
 // final RegExp moodyDeviceNameRegExp = RegExp(r'^m\d{3}$');
 final RegExp moodyDeviceNameRegExp = RegExp(
-    r'^([mM][0-9]{3}|MOODY_[0-9A-F]{4})$'); // new firmware auto generated device names from MAC
+    r'^([mM][0-9]{3}|MOODY_[0-9A-Fa-f]{4}|moody_[0-9A-Fa-f]{4})$'); // new firmware auto generated device names from MAC
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -653,7 +653,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
       Future.delayed(Duration(seconds: 15), () async {
         // Stop scanning
-        //  _scanSubscription?.cancel();
+        //  _scanSubscription?.cancel();""
         print('>>> Stopscan START');
         await FlutterBluePlus.stopScan();
         print('>>> Stopscan END');
@@ -750,15 +750,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
     final snackBar = SnackBar(content: Text('Connected'));
     snackBarKeyC.currentState?.showSnackBar(snackBar);
-    await widget.device.requestMtu(128);
-    int mtu = await widget.device.mtu.first;
-    while (mtu != 128) {
-      print("Waiting for requested MTU");
-      await Future.delayed(Duration(seconds: 1));
-      await widget.device.requestMtu(128);
+    // await widget.device.requestMtu(128);
+    // int mtu = await widget.device.mtu.first;
+    // while (mtu != 128) {
+    //   print("Waiting for requested MTU");
+    //   await Future.delayed(Duration(seconds: 1));
+    //   await widget.device.requestMtu(128);
 
-      mtu = await widget.device.mtu.first;
-    }
+    //   mtu = await widget.device.mtu.first;
+    // }
     discoverServices();
   }
 
