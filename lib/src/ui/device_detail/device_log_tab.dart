@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:moody_excitement_calculator/src/ble/ble_logger.dart';
+import 'package:Moody/src/ble/ble_logger.dart';
 import 'package:provider/provider.dart';
 
 class DeviceLogTab extends StatelessWidget {

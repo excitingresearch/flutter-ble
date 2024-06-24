@@ -27,7 +27,7 @@
     <uses-permission android:name="android.permission.NFC" />
 
     <application
-        android:label="moody_excitement_calculator"
+        android:label="Moody"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="com.signify.hue.reactivebleexample.MainActivity"
