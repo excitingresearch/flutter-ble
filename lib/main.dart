@@ -19,6 +19,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:location/location.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
@@ -50,6 +51,39 @@ void main() {
   // runApp(MyApp());
 }
 
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'RFID Scanner App',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//       ),
+//       // home: FirstScreen(),
+//       home: FutureBuilder(
+//         future: _checkDeviceId(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return CircularProgressIndicator();
+//           } else if (snapshot.hasData && snapshot.data == true) {
+//             return ToggleScreen();
+//           } else {
+//             return FirstScreen();
+//           }
+//         },
+//       ),
+//       debugShowCheckedModeBanner: false,
+//     );
+//   }
+
+//   Future<bool> _checkDeviceId() async {
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
+//     String? deviceId = prefs.getString('device_id');
+//     print("Got from sharedPrefs $deviceId");
+//     return deviceId != null;
+//   }
+// }
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -58,11 +92,165 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: FirstScreen(),
+      home: FutureBuilder<bool>(
+        future: _checkDeviceId(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          } else if (snapshot.hasData && snapshot.data == true) {
+            return ToggleScreen();
+          } else {
+            return FirstScreen();
+          }
+        },
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
+
+  Future<bool> _checkDeviceId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? deviceId = prefs.getString('device_id');
+    print("Got from sharedPrefs: $deviceId");
+    return deviceId != null;
+  }
 }
+
+class ToggleScreen extends StatefulWidget {
+  @override
+  _ToggleScreenState createState() => _ToggleScreenState();
+}
+
+class _ToggleScreenState extends State<ToggleScreen> {
+  BluetoothDevice? _connectedDevice;
+  String? _deviceId;
+  bool _isScanning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDeviceId();
+    _startScan();
+  }
+
+  Future<void> _loadDeviceId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _deviceId = prefs.getString('device_id');
+    });
+  }
+
+  void _startScan() {
+    setState(() {
+      _isScanning = true;
+    });
+    FlutterBluePlus.scanResults.listen((scanResults) {
+      for (ScanResult scanResult in scanResults) {
+        if (scanResult.device.platformName.toString() == _deviceId) {
+          FlutterBluePlus.stopScan();
+          setState(() {
+            _connectedDevice = scanResult.device;
+            _isScanning = false;
+          });
+        }
+      }
+    });
+    // FlutterBluePlus.isScanning
+    FlutterBluePlus.startScan(
+            timeout: const Duration(seconds: 15),
+            androidUsesFineLocation: false)
+        .then((_) {
+      // print("shared set scanning false");
+      // await
+      // setState(() {
+      //   _isScanning = false;
+      // });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // appBar: AppBar(
+      //   title: Text('Toggle Screen'),
+      // ),
+      body: Column(
+        children: [
+          Expanded(
+            child: _connectedDevice != null && _deviceId != null
+                ? DeviceScreen(device: _connectedDevice!, deviceId: _deviceId!)
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(
+                            height:
+                                16), // Add some space between the indicator and the text
+                        Text('Connecting to ${_deviceId ?? 'null'}'),
+                        // if (!FlutterBluePlus.isScanning)
+                        //   ElevatedButton(
+                        //     onPressed: _startScan,
+                        //     child: Text('Start Scanning Again'),
+                        //   ),
+                        StreamBuilder<bool>(
+                          stream: FlutterBluePlus.isScanning,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.active &&
+                                !snapshot.data!) {
+                              return ElevatedButton(
+                                onPressed: _startScan,
+                                child: Text('Start Scanning Again'),
+                              );
+                            }
+                            return SizedBox
+                                .shrink(); // Return an empty widget when scanning
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+          if (_connectedDevice != null)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text('Button 1'),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text('Button 2'),
+                ),
+                ElevatedButton(
+                  onPressed: () {},
+                  child: Text('Button 3'),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// class ToggleScreen extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Toggle Screen'),
+//       ),
+//       body: Center(
+//         child: Text('This is the toggle screen'),
+//       ),
+//     );
+//   }
+// }
 
 class FirstScreen extends StatefulWidget {
   @override
@@ -415,6 +603,8 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
     }
   }
 
+  void saveAndNav() {}
+
   @override
   Widget build(BuildContext context) {
     return ScaffoldMessenger(
@@ -453,15 +643,29 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                       BluetoothConnectionState.connected) {
                                     return ElevatedButton(
                                       child: const Text('OPEN'),
-                                      onPressed: () => Navigator.of(context)
-                                          .push(MaterialPageRoute(
-                                              builder: (context) =>
-                                                  DeviceScreen(
-                                                      device: d,
-                                                      deviceId:
-                                                          widget.deviceId),
-                                              settings: RouteSettings(
-                                                  name: '/deviceScreen'))),
+                                      onPressed: () async {
+                                        // Save the deviceId to SharedPreferences
+                                        SharedPreferences prefs =
+                                            await SharedPreferences
+                                                .getInstance();
+                                        await prefs.setString(
+                                            'device_id', widget.deviceId);
+                                        print(
+                                            "Set to sharedPrefs: ${widget.deviceId}");
+
+                                        // Navigate to DeviceScreen
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => DeviceScreen(
+                                              device:
+                                                  d, // Replace with actual device object
+                                              deviceId: widget.deviceId,
+                                            ),
+                                            settings: RouteSettings(
+                                                name: '/deviceScreen'),
+                                          ),
+                                        );
+                                      },
                                     );
                                   }
                                   if (snapshot.data ==
@@ -746,11 +950,20 @@ class _DeviceScreenState extends State<DeviceScreen> {
   }
 
   connectToDevice() async {
+    print("pre sharedPrefs: connectToDevice");
+
     await widget.device.connect();
+
+    // Save the deviceId to SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('device_id', widget.deviceId);
+    print("Set to sharedPrefs: ${widget.deviceId}");
+
     KeepScreenOn.turnOn();
 
     final snackBar = SnackBar(content: Text('Connected'));
     snackBarKeyC.currentState?.showSnackBar(snackBar);
+
     // await widget.device.requestMtu(128);
     // int mtu = await widget.device.mtu.first;
     // while (mtu != 128) {
