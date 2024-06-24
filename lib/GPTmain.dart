@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_ble_moody/src/ui/DeviceScreen.dart';
+import 'package:moody_excitement_calculator/src/ui/DeviceScreen.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 

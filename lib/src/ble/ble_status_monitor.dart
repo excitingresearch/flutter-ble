@@ -1,5 +1,5 @@
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:flutter_ble_moody/src/ble/reactive_state.dart';
+import 'package:moody_excitement_calculator/src/ble/reactive_state.dart';
 
 class BleStatusMonitor implements ReactiveState<BleStatus?> {
   const BleStatusMonitor(this._ble);

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
-import 'package:flutter_ble_moody/src/ble/ble_device_interactor.dart';
+import 'package:moody_excitement_calculator/src/ble/ble_device_interactor.dart';
 import 'package:provider/provider.dart';
 
 class CharacteristicInteractionDialog extends StatelessWidget {
