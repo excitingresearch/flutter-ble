@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 // import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import 'package:flutter_ble_moody/widgets.dart';
+import 'package:Moody/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
