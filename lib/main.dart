@@ -1016,8 +1016,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     100; // Divide by 100 to get the original temperature.
 
                 List<String> rgbStrings = rgbString.split(',');
-                int _r = int.parse(rgbStrings[0]);
-                int _g = int.parse(rgbStrings[1]);
+                int _r = int.parse(rgbStrings[1]);
+                int _g = int.parse(rgbStrings[0]);
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
@@ -1131,33 +1131,37 @@ class _DeviceScreenState extends State<DeviceScreen> {
 
                 // cleanUpScanning();
 
-                final response = await http.get(
-                  Uri.http(serverHost, '/addData', {
-                    'moodid': widget.deviceId,
-                    'temperature': localTemp.toStringAsFixed(2),
-                    'battery': _bat.toStringAsFixed(2),
-                    'color': jsonEncode([_r, _g, _b]),
-                    'excitement': '0',
-                    'location': jsonEncode([
-                      _currentPosition?.latitude,
-                      _currentPosition?.longitude
-                    ]),
-                    'proximity': jsonEncode(deviceRssi.entries
-                        .map((entry) =>
-                            {'id': entry.key, 'distance': entry.value})
-                        .toList()),
-                    'gyro': jsonEncode(_gyroscopeValues),
-                  }),
-                );
+                try {
+                  final response = await http.get(
+                    Uri.http(serverHost, '/addData', {
+                      'moodid': widget.deviceId,
+                      'temperature': localTemp.toStringAsFixed(2),
+                      'battery': _bat.toStringAsFixed(2),
+                      'color': jsonEncode([_r, _g, _b]),
+                      'excitement': '0',
+                      'location': jsonEncode([
+                        _currentPosition?.latitude,
+                        _currentPosition?.longitude
+                      ]),
+                      'proximity': jsonEncode(deviceRssi.entries
+                          .map((entry) =>
+                              {'id': entry.key, 'distance': entry.value})
+                          .toList()),
+                      'gyro': jsonEncode(_gyroscopeValues),
+                    }),
+                  );
 
-                if (response.statusCode == 200) {
-                  // If the server returns a 200 OK response,
-                  // then parse the JSON.
-                  print('Response data: ${(response.body)}');
-                } else {
-                  // If the server did not return a 200 OK response,
-                  // then throw an exception.
-                  throw Exception('Failed to get data.');
+                  if (response.statusCode == 200) {
+                    // If the server returns a 200 OK response,
+                    // then parse the JSON.
+                    print('Response data: ${(response.body)}');
+                  } else {
+                    // If the server did not return a 200 OK response,
+                    // then throw an exception.
+                    throw Exception('Failed to get data.');
+                  }
+                } on Exception catch (e) {
+                  print("Error server $e");
                 }
 
                 print('>>> Try resetDevicesDataAndScan');
