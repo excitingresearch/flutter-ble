@@ -14,7 +14,7 @@ import 'package:flutter/services.dart';
 // import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
-import 'package:Moody/widgets.dart';
+import 'package:moody/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
@@ -1016,8 +1016,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     100; // Divide by 100 to get the original temperature.
 
                 List<String> rgbStrings = rgbString.split(',');
-                int _r = int.parse(rgbStrings[1]);
-                int _g = int.parse(rgbStrings[0]);
+                int _r = int.parse(rgbStrings[0]);
+                int _g = int.parse(rgbStrings[1]);
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
@@ -1095,8 +1095,8 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     100; // Divide by 100 to get the original temperature.
 
                 List<String> rgbStrings = rgbString.split(',');
-                int _r = int.parse(rgbStrings[0]);
-                int _g = int.parse(rgbStrings[1]);
+                int _r = int.parse(rgbStrings[1]);
+                int _g = int.parse(rgbStrings[0]);
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
