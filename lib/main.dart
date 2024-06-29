@@ -320,11 +320,13 @@ class _ToggleScreenState extends State<ToggleScreen> {
             ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showDeleteConfirmationDialog(context),
-        child: Icon(Icons.delete),
-        tooltip: 'Forget Device',
-      ),
+      floatingActionButton: _connectedDevice != null && _deviceId != null
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _showDeleteConfirmationDialog(context),
+              child: Icon(Icons.delete),
+              tooltip: 'Forget Device',
+            ),
     );
   }
 }
@@ -1316,66 +1318,66 @@ class _DeviceScreenState extends State<DeviceScreen> {
     return ScaffoldMessenger(
       key: snackBarKeyC,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.device.localName),
-          actions: <Widget>[
-            StreamBuilder<BluetoothConnectionState>(
-              stream: widget.device.connectionState,
-              initialData: BluetoothConnectionState.connecting,
-              builder: (c, snapshot) {
-                VoidCallback? onPressed;
-                String text;
-                switch (snapshot.data) {
-                  case BluetoothConnectionState.connected:
-                    onPressed = () async {
-                      try {
-                        await bleSubscription?.cancel();
+        // appBar: AppBar(
+        //   // title: Text(widget.device.localName),
+        //   actions: <Widget>[
+        //     StreamBuilder<BluetoothConnectionState>(
+        //       stream: widget.device.connectionState,
+        //       initialData: BluetoothConnectionState.connecting,
+        //       builder: (c, snapshot) {
+        //         VoidCallback? onPressed;
+        //         String text;
+        //         switch (snapshot.data) {
+        //           case BluetoothConnectionState.connected:
+        //             onPressed = () async {
+        //               try {
+        //                 await bleSubscription?.cancel();
 
-                        cleanUpScanning();
+        //                 cleanUpScanning();
 
-                        await widget.device.disconnect();
-                      } catch (e) {
-                        final snackBar = SnackBar(
-                            content:
-                                Text(prettyException('Disconnect Error:', e)));
-                        snackBarKeyC.currentState?.showSnackBar(snackBar);
-                      }
-                    };
-                    text = 'DISCONNECT';
-                    break;
-                  case BluetoothConnectionState.disconnected:
-                    onPressed = () async {
-                      try {
-                        await widget.device
-                            .connect(timeout: Duration(seconds: 4));
-                      } catch (e) {
-                        final snackBar = SnackBar(
-                            content:
-                                Text(prettyException('Connect Error:', e)));
-                        snackBarKeyC.currentState?.showSnackBar(snackBar);
-                      }
-                    };
-                    text = 'CONNECT';
-                    break;
-                  default:
-                    onPressed = null;
-                    text =
-                        snapshot.data.toString().split('.').last.toUpperCase();
-                    break;
-                }
-                return TextButton(
-                    onPressed: onPressed,
-                    child: Text(
-                      text,
-                      style: Theme.of(context)
-                          .primaryTextTheme
-                          .labelLarge
-                          ?.copyWith(color: Colors.white),
-                    ));
-              },
-            )
-          ],
-        ),
+        //                 await widget.device.disconnect();
+        //               } catch (e) {
+        //                 final snackBar = SnackBar(
+        //                     content:
+        //                         Text(prettyException('Disconnect Error:', e)));
+        //                 snackBarKeyC.currentState?.showSnackBar(snackBar);
+        //               }
+        //             };
+        //             text = 'DISCONNECT';
+        //             break;
+        //           case BluetoothConnectionState.disconnected:
+        //             onPressed = () async {
+        //               try {
+        //                 await widget.device
+        //                     .connect(timeout: Duration(seconds: 4));
+        //               } catch (e) {
+        //                 final snackBar = SnackBar(
+        //                     content:
+        //                         Text(prettyException('Connect Error:', e)));
+        //                 snackBarKeyC.currentState?.showSnackBar(snackBar);
+        //               }
+        //             };
+        //             text = 'CONNECT';
+        //             break;
+        //           default:
+        //             onPressed = null;
+        //             text =
+        //                 snapshot.data.toString().split('.').last.toUpperCase();
+        //             break;
+        //         }
+        //         return TextButton(
+        //             onPressed: onPressed,
+        //             child: Text(
+        //               text,
+        //               style: Theme.of(context)
+        //                   .primaryTextTheme
+        //                   .labelLarge
+        //                   ?.copyWith(color: Colors.white),
+        //             ));
+        //       },
+        //     )
+        //   ],
+        // ),
         body: Container(
           key: ValueKey(gradientColors.length),
           decoration: gradientColors.length >= 2
