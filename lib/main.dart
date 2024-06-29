@@ -21,6 +21,7 @@ import 'package:moody/src/providers/DeviceProvider.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:moody/src/widgets/toggle_image_button.dart';
 
 final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
@@ -515,10 +516,47 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen>
     with SingleTickerProviderStateMixin {
-  String _imagePathButton1 = 'assets/images/NOW.png';
-  String _imagePathButton2 = 'assets/images/spirit2.png';
-  String _imagePathButton0 = 'assets/images/icons-Individual1.png';
-  String _imagePathButton3 = 'assets/images/terrain.png';
+  // String _imagePathButton1 = 'assets/images/NOW.png';
+  // String _imagePathButton2 = 'assets/images/spirit2.png';
+  // String _imagePathButton0 = 'assets/images/icons-Individual1.png';
+  // String _imagePathButton3 = 'assets/images/terrain.png';
+
+  // bool showIndividual = false;
+  // bool showHistory = false;
+  // bool showSpirit = true;
+  // bool showTerrain = true;
+
+  Map<String, bool> buttonStates = {
+    "showIndividual": false,
+    "showHistory": true,
+    "showSpirit": true,
+    "showTerrain": false,
+  };
+
+  void _handleToggle(bool isToggled, String buttonIndex) {
+    setState(() {
+      buttonStates[buttonIndex] = isToggled;
+    });
+  }
+
+  // void _handleToggle(bool isToggled, bool btnValue) {
+  //   setState(() {
+  //     // switch (buttonIndex) {
+  //     //   case 1:
+  //     //     showIndividual = isToggled;
+  //     //     break;
+  //     //   case 2:
+  //     //     showHistory = isToggled;
+  //     //     break;
+  //     //   case 3:
+  //     //     showSpirit = isToggled;
+  //     //     break;
+  //     //   case 4:
+  //     //     showTerrain = isToggled;
+  //     //     break;
+  //     // }
+  //   });
+  // }
 
   String receivedData = '';
   double temp = 0.0;
@@ -539,10 +577,6 @@ class _DeviceScreenState extends State<DeviceScreen>
   int index = 0;
   int count = 0;
 
-  bool showIndividual = false;
-  bool showHistory = false;
-  bool showSpirit = true;
-  bool showTerrain = true;
   Color _currentColor = Colors.black;
   Color _nextColor = Colors.black;
   late AnimationController _controller;
@@ -1044,8 +1078,8 @@ class _DeviceScreenState extends State<DeviceScreen>
         // ),
         body: Container(
           key: ValueKey(gradientColors.length),
-          decoration: showSpirit
-              ? (showHistory && gradientColors.length >= 2
+          decoration: buttonStates["showSpirit"]!
+              ? (buttonStates["showHistory"]! && gradientColors.length >= 2
                   ? BoxDecoration(
                       gradient: RadialGradient(
                         center: const Alignment(0.0, 1.0),
@@ -1100,102 +1134,158 @@ class _DeviceScreenState extends State<DeviceScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showIndividual = !showIndividual;
-                          _imagePathButton0 = showIndividual
-                              ? 'assets/images/icons-Individual1.png'
-                              : 'assets/images/icons-group1.png';
-                        });
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.width /
-                            4, // Ensuring the buttons are square
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(_imagePathButton0),
-                            fit: BoxFit.cover,
-                          ),
-                          border:
-                              null, // Optional: add a border to distinguish the buttons
-                        ),
-                      ),
-                    ),
+                  /*
+                    bool showIndividual = false;
+  bool showHistory = false;
+  bool showSpirit = true;
+  bool showTerrain = true;
+  */
+                  ToggleImageButton(
+                    initialImage: 'assets/images/icons-Individual1.png',
+                    toggledImage: 'assets/images/icons-group1.png',
+                    initialState: buttonStates["showIndividual"]!,
+                    onToggle: (isToggled) =>
+                        _handleToggle(isToggled, "showIndividual"),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showHistory = !showHistory;
-                          _imagePathButton1 = showHistory
-                              ? 'assets/images/NOW+History9.png'
-                              : 'assets/images/NOW.png';
-                        });
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.width /
-                            4, // Ensuring the buttons are square
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(_imagePathButton1),
-                            fit: BoxFit.cover,
-                          ),
-                          border:
-                              null, // Optional: add a border to distinguish the buttons
-                        ),
-                      ),
-                    ),
+                  ToggleImageButton(
+                    initialImage: 'assets/images/NOW.png',
+                    toggledImage: 'assets/images/NOW+History9.png',
+                    initialState: buttonStates["showHistory"]!,
+                    onToggle: (isToggled) =>
+                        _handleToggle(isToggled, "showHistory"),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showSpirit = !showSpirit;
-                          _imagePathButton2 = showSpirit
-                              ? 'assets/images/spirit2.png'
-                              : 'assets/images/spirit2-grey.png';
-                        });
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.width /
-                            4, // Ensuring the buttons are square
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(_imagePathButton2),
-                            fit: BoxFit.cover,
-                          ),
-                          border:
-                              null, // Optional: add a border to distinguish the buttons
-                        ),
-                      ),
-                    ),
+                  ToggleImageButton(
+                    initialImage: 'assets/images/spirit2-grey.png',
+                    toggledImage: 'assets/images/spirit2.png',
+                    initialState: buttonStates["showSpirit"]!,
+                    onToggle: (isToggled) =>
+                        _handleToggle(isToggled, "showSpirit"),
                   ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showTerrain = !showTerrain;
-                          _imagePathButton3 = showTerrain
-                              ? 'assets/images/terrain.png'
-                              : 'assets/images/terrain-grey.png';
-                        });
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.width /
-                            4, // Ensuring the buttons are square
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: AssetImage(_imagePathButton3),
-                            fit: BoxFit.cover,
-                          ),
-                          border:
-                              null, // Optional: add a border to distinguish the buttons
-                        ),
-                      ),
-                    ),
+                  ToggleImageButton(
+                    initialImage: 'assets/images/terrain-grey.png',
+                    toggledImage: 'assets/images/terrain.png',
+                    initialState: buttonStates["showTerrain"]!,
+                    onToggle: (isToggled) =>
+                        _handleToggle(isToggled, "showTerrain"),
                   ),
+
+                  // ToggleImageButton(
+                  //   initialImage: 'assets/images/icons-Individual1.png',
+                  //   toggledImage: 'assets/images/icons-group1.png',
+                  //   onToggle: (isToggled) => _handleToggle(isToggled, showIndividual),
+                  // ),
+                  // ToggleImageButton(
+                  //   initialImage: 'assets/images/NOW+History9.png',
+                  //   toggledImage: 'assets/images/NOW.png',
+                  //   onToggle: (isToggled) => _handleToggle(isToggled, showHistory),
+                  // ),
+                  // ToggleImageButton(
+                  //   initialImage: 'assets/images/spirit2.png',
+                  //   toggledImage: 'assets/images/spirit2-grey.png',
+                  //   onToggle: (isToggled) => _handleToggle(isToggled, showSpirit),
+                  // ),
+                  // ToggleImageButton(
+                  //   initialImage: 'assets/images/terrain-grey.png',
+                  //   toggledImage: 'assets/images/terrain.png',
+                  //   onToggle: (isToggled) => _handleToggle(isToggled, showTerrain),
+                  // ),
+
+                  // Expanded(
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       setState(() {
+                  //         showIndividual = !showIndividual;
+                  //         _imagePathButton0 = showIndividual
+                  //             ? 'assets/images/icons-Individual1.png'
+                  //             : 'assets/images/icons-group1.png';
+                  //       });
+                  //     },
+                  //     child: Container(
+                  //       height: MediaQuery.of(context).size.width /
+                  //           4, // Ensuring the buttons are square
+                  //       decoration: BoxDecoration(
+                  //         image: DecorationImage(
+                  //           image: AssetImage(_imagePathButton0),
+                  //           fit: BoxFit.cover,
+                  //         ),
+                  //         border:
+                  //             null, // Optional: add a border to distinguish the buttons
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // Expanded(
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       setState(() {
+                  //         showHistory = !showHistory;
+                  //         _imagePathButton1 = showHistory
+                  //             ? 'assets/images/NOW+History9.png'
+                  //             : 'assets/images/NOW.png';
+                  //       });
+                  //     },
+                  //     child: Container(
+                  //       height: MediaQuery.of(context).size.width /
+                  //           4, // Ensuring the buttons are square
+                  //       decoration: BoxDecoration(
+                  //         image: DecorationImage(
+                  //           image: AssetImage(_imagePathButton1),
+                  //           fit: BoxFit.cover,
+                  //         ),
+                  //         border:
+                  //             null, // Optional: add a border to distinguish the buttons
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // Expanded(
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       setState(() {
+                  //         showSpirit = !showSpirit;
+                  //         _imagePathButton2 = showSpirit
+                  //             ? 'assets/images/spirit2.png'
+                  //             : 'assets/images/spirit2-grey.png';
+                  //       });
+                  //     },
+                  //     child: Container(
+                  //       height: MediaQuery.of(context).size.width /
+                  //           4, // Ensuring the buttons are square
+                  //       decoration: BoxDecoration(
+                  //         image: DecorationImage(
+                  //           image: AssetImage(_imagePathButton2),
+                  //           fit: BoxFit.cover,
+                  //         ),
+                  //         border:
+                  //             null, // Optional: add a border to distinguish the buttons
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  // Expanded(
+                  //   child: GestureDetector(
+                  //     onTap: () {
+                  //       setState(() {
+                  //         showTerrain = !showTerrain;
+                  //         _imagePathButton3 = showTerrain
+                  //             ? 'assets/images/terrain.png'
+                  //             : 'assets/images/terrain-grey.png';
+                  //       });
+                  //     },
+                  //     child: Container(
+                  //       height: MediaQuery.of(context).size.width /
+                  //           4, // Ensuring the buttons are square
+                  //       decoration: BoxDecoration(
+                  //         image: DecorationImage(
+                  //           image: AssetImage(_imagePathButton3),
+                  //           fit: BoxFit.cover,
+                  //         ),
+                  //         border:
+                  //             null, // Optional: add a border to distinguish the buttons
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ],
