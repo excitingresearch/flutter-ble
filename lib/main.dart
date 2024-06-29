@@ -17,6 +17,8 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:moody/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:provider/provider.dart';
+import 'package:moody/src/providers/DeviceProvider.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:location/location.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,26 +89,39 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RFID Scanner App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider(
+      create: (context) => DeviceProvider(),
+      child: MaterialApp(
+        title: 'RFID Scanner App',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: Consumer<DeviceProvider>(
+          builder: (context, deviceProvider, child) {
+            if (deviceProvider.deviceId == null) {
+              return FirstScreen();
+            } else {
+              return ToggleScreen();
+            }
+          },
+        ),
+
+        // home: FutureBuilder<bool>(
+        //   future: _checkDeviceId(),
+        //   builder: (context, snapshot) {
+        //     if (snapshot.connectionState == ConnectionState.waiting) {
+        //       return Scaffold(
+        //         body: Center(child: CircularProgressIndicator()),
+        //       );
+        //     } else if (snapshot.hasData && snapshot.data == true) {
+        //       return ToggleScreen();
+        //     } else {
+        //       return FirstScreen();
+        //     }
+        //   },
+        // ),
+        debugShowCheckedModeBanner: false,
       ),
-      home: FutureBuilder<bool>(
-        future: _checkDeviceId(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          } else if (snapshot.hasData && snapshot.data == true) {
-            return ToggleScreen();
-          } else {
-            return FirstScreen();
-          }
-        },
-      ),
-      debugShowCheckedModeBanner: false,
     );
   }
 
@@ -147,6 +162,37 @@ class _ToggleScreenState extends State<ToggleScreen> {
       _isScanning = true;
     });
     FlutterBluePlus.scanResults.listen((scanResults) {
+      // showDialog(
+      //   context: context,
+      //   builder: (BuildContext context) {
+      //     return AlertDialog(
+      //       title: Text('Forget Device'),
+      //       content: Consumer<DeviceProvider>(
+      //         builder: (context, deviceProvider, child) {
+      //           return Text(
+      //             'Are you sure you want to forget the device with ID: ${deviceProvider.deviceId}?',
+      //           );
+      //         },
+      //       ),
+      //       actions: [
+      //         TextButton(
+      //           child: Text('Cancel'),
+      //           onPressed: () {
+      //             Navigator.of(context).pop();
+      //           },
+      //         ),
+      //         TextButton(
+      //           child: Text('Yes'),
+      //           onPressed: () {
+      //             Provider.of<DeviceProvider>(context, listen: false)
+      //                 .deleteDeviceId();
+      //             Navigator.of(context).pop();
+      //           },
+      //         ),
+      //       ],
+      //     );
+      //   },
+      // );
       for (ScanResult scanResult in scanResults) {
         if (scanResult.device.platformName.toString() == _deviceId) {
           FlutterBluePlus.stopScan();
@@ -170,6 +216,40 @@ class _ToggleScreenState extends State<ToggleScreen> {
     });
   }
 
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Forget Device'),
+          content: Consumer<DeviceProvider>(
+            builder: (context, deviceProvider, child) {
+              return Text(
+                'Are you sure you want to forget the device with ID: ${deviceProvider.deviceId}?',
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () {
+                Provider.of<DeviceProvider>(context, listen: false)
+                    .deleteDeviceId();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,35 +262,41 @@ class _ToggleScreenState extends State<ToggleScreen> {
             child: _connectedDevice != null && _deviceId != null
                 ? DeviceScreen(device: _connectedDevice!, deviceId: _deviceId!)
                 : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(
-                            height:
-                                16), // Add some space between the indicator and the text
-                        Text('Connecting to ${_deviceId ?? 'null'}'),
+                    child:
                         // if (!FlutterBluePlus.isScanning)
                         //   ElevatedButton(
                         //     onPressed: _startScan,
                         //     child: Text('Start Scanning Again'),
                         //   ),
                         StreamBuilder<bool>(
-                          stream: FlutterBluePlus.isScanning,
-                          builder: (context, snapshot) {
+                      stream: FlutterBluePlus.isScanning,
+                      builder: (context, snapshot) {
+                        // return SizedBox
+                        //     .shrink(); // Return an empty widget when scanning
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (snapshot.connectionState !=
+                                    ConnectionState.active ||
+                                (snapshot.connectionState ==
+                                        ConnectionState.active &&
+                                    snapshot.data!))
+                              CircularProgressIndicator(),
+                            SizedBox(
+                                height:
+                                    16), // Add some space between the indicator and the text
+                            Text('Connecting to ${_deviceId ?? 'null'}'),
                             if (snapshot.connectionState ==
                                     ConnectionState.active &&
-                                !snapshot.data!) {
-                              return ElevatedButton(
+                                !snapshot.data!)
+                              ElevatedButton(
                                 onPressed: _startScan,
                                 child: Text('Start Scanning Again'),
-                              );
-                            }
-                            return SizedBox
-                                .shrink(); // Return an empty widget when scanning
-                          },
-                        ),
-                      ],
+                              )
+                          ],
+                        );
+                      },
                     ),
                   ),
           ),
@@ -233,6 +319,11 @@ class _ToggleScreenState extends State<ToggleScreen> {
               ],
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showDeleteConfirmationDialog(context),
+        child: Icon(Icons.delete),
+        tooltip: 'Forget Device',
       ),
     );
   }
@@ -414,16 +505,21 @@ class _FirstScreenState extends State<FirstScreen> {
                   child: Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
                           moodyDeviceNameRegExp.hasMatch(deviceId.toUpperCase())
-                      ? () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  FlutterBlueApp(deviceId: deviceId),
-                            ),
-                          ).then((value) {
-                            print('back here');
-                            pollRFID();
-                          })
+                      ? () {
+                          Provider.of<DeviceProvider>(context, listen: false)
+                              .setDeviceId(deviceId);
+
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) =>
+                          //         FlutterBlueApp(deviceId: deviceId),
+                          //   ),
+                          // ).then((value) {
+                          //   print('back here');
+                          //   pollRFID();
+                          // });
+                        }
                       : null,
                 ),
                 ElevatedButton(
@@ -644,15 +740,6 @@ class _FindDevicesScreenState extends State<FindDevicesScreen> {
                                     return ElevatedButton(
                                       child: const Text('OPEN'),
                                       onPressed: () async {
-                                        // Save the deviceId to SharedPreferences
-                                        SharedPreferences prefs =
-                                            await SharedPreferences
-                                                .getInstance();
-                                        await prefs.setString(
-                                            'device_id', widget.deviceId);
-                                        print(
-                                            "Set to sharedPrefs: ${widget.deviceId}");
-
                                         // Navigate to DeviceScreen
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
