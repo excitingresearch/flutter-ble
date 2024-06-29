@@ -554,6 +554,36 @@ class _FirstScreenState extends State<FirstScreen> {
                         }
                       : null,
                 ),
+                Consumer<DeviceProvider>(
+                  builder: (context, deviceProvider, child) {
+                    return Column(
+                      children: [
+                        Text(
+                          'Previously connected devices:',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        ...deviceProvider.previousDeviceIds.map(
+                          (id) => GestureDetector(
+                            onTap: () {
+                              _deviceIdController.text = id;
+                              if (mounted) {
+                                setState(() {
+                                  isManualEntry = true;
+                                });
+                              }
+                            },
+                            child: Text(
+                              id,
+                              style:
+                                  TextStyle(fontSize: 14, color: Colors.blue),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),

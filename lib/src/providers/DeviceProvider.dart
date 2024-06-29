@@ -17,12 +17,18 @@ class DeviceProvider with ChangeNotifier {
     _loadPreviousDeviceIds();
   }
 
-  Future<void> setDeviceId(String newId) async {
-    // Save the deviceId to SharedPreferences
+  Future<void> setDeviceId(String deviceId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('device_id', newId);
-    print("Set to sharedPrefs: $newId");
-    _deviceId = newId;
+    _deviceId = deviceId;
+    if (!_previousDeviceIds.contains(deviceId)) {
+      _previousDeviceIds.insert(0, deviceId); // Add to the top
+    } else {
+      // Move existing entry to the top
+      _previousDeviceIds.remove(deviceId);
+      _previousDeviceIds.insert(0, deviceId);
+    }
+    await prefs.setString('device_id', deviceId);
+    await prefs.setStringList('previous_device_ids', _previousDeviceIds);
     notifyListeners();
   }
 
@@ -42,6 +48,8 @@ class DeviceProvider with ChangeNotifier {
     if (_deviceId != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       _previousDeviceIds.add(_deviceId!);
+      _previousDeviceIds =
+          _previousDeviceIds.toSet().toList(); // Ensure uniqueness
       await prefs.setStringList('previous_device_ids', _previousDeviceIds);
       await prefs.remove('device_id');
       _deviceId = null;
