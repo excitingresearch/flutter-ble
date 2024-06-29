@@ -4,14 +4,9 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
-import 'package:keep_screen_on/keep_screen_on.dart';
 import 'package:moody/src/screens/AutoConnectScreen.dart';
-import 'package:moody/src/screens/DeviceScreen.dart';
 import 'package:moody/src/screens/EnrollDeviceScreen.dart';
 
-import 'package:sensors_plus/sensors_plus.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 // import 'package:flutter_blue/flutter_blue.dart';
@@ -21,10 +16,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:provider/provider.dart';
 import 'package:moody/src/providers/DeviceProvider.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
-import 'package:location/location.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:moody/src/widgets/toggle_image_button.dart';
 
 final snackBarKeyA = GlobalKey<ScaffoldMessengerState>();
 final snackBarKeyB = GlobalKey<ScaffoldMessengerState>();
