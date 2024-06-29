@@ -907,6 +907,9 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen>
     with SingleTickerProviderStateMixin {
   String _imagePathButton1 = 'assets/images/NOW.png';
+  String _imagePathButton2 = 'assets/images/spirit2.png';
+  String _imagePathButton0 = 'assets/images/icons-Individual1.png';
+  String _imagePathButton3 = 'assets/images/terrain.png';
 
   String receivedData = '';
   double temp = 0.0;
@@ -927,7 +930,10 @@ class _DeviceScreenState extends State<DeviceScreen>
   int index = 0;
   int count = 0;
 
+  bool showIndividual = false;
   bool showHistory = false;
+  bool showSpirit = true;
+  bool showTerrain = true;
   Color _currentColor = Colors.black;
   Color _nextColor = Colors.black;
   late AnimationController _controller;
@@ -1429,21 +1435,23 @@ class _DeviceScreenState extends State<DeviceScreen>
         // ),
         body: Container(
           key: ValueKey(gradientColors.length),
-          decoration: showHistory && gradientColors.length >= 2
-              ? BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(0.0, 1.0),
-                    radius: AR, // 0.5,
-                    colors: gradientColors,
-                  ),
-                )
-              : BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(0.0, 1.0),
-                    radius: AR, // 0.5,
-                    colors: [_currentColor, _colorAnimation.value!],
-                  ),
-                ),
+          decoration: showSpirit
+              ? (showHistory && gradientColors.length >= 2
+                  ? BoxDecoration(
+                      gradient: RadialGradient(
+                        center: const Alignment(0.0, 1.0),
+                        radius: AR, // 0.5,
+                        colors: gradientColors,
+                      ),
+                    )
+                  : BoxDecoration(
+                      gradient: RadialGradient(
+                        center: const Alignment(0.0, 1.0),
+                        radius: AR, // 0.5,
+                        colors: [_currentColor, _colorAnimation.value!],
+                      ),
+                    ))
+              : null,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -1483,28 +1491,162 @@ class _DeviceScreenState extends State<DeviceScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        showHistory = !showHistory;
-                        _imagePathButton1 = showHistory
-                            ? 'assets/images/NOW+History9.png'
-                            : 'assets/images/NOW.png';
-                      });
-                    },
-                    child: Image.asset(
-                      _imagePathButton1,
-                      width: 60,
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showIndividual = !showIndividual;
+                          _imagePathButton0 = showIndividual
+                              ? 'assets/images/icons-Individual1.png'
+                              : 'assets/images/icons-group1.png';
+                        });
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.width /
+                            4, // Ensuring the buttons are square
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(_imagePathButton0),
+                            fit: BoxFit.cover,
+                          ),
+                          border:
+                              null, // Optional: add a border to distinguish the buttons
+                        ),
+                      ),
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: Text('Button 2'),
+
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showHistory = !showHistory;
+                          _imagePathButton1 = showHistory
+                              ? 'assets/images/NOW+History9.png'
+                              : 'assets/images/NOW.png';
+                        });
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.width /
+                            4, // Ensuring the buttons are square
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(_imagePathButton1),
+                            fit: BoxFit.cover,
+                          ),
+                          border:
+                              null, // Optional: add a border to distinguish the buttons
+                        ),
+                      ),
+                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: Text('Button 3'),
+
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showSpirit = !showSpirit;
+                          _imagePathButton2 = showSpirit
+                              ? 'assets/images/spirit2.png'
+                              : 'assets/images/spirit2-grey.png';
+                        });
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.width /
+                            4, // Ensuring the buttons are square
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(_imagePathButton2),
+                            fit: BoxFit.cover,
+                          ),
+                          border:
+                              null, // Optional: add a border to distinguish the buttons
+                        ),
+                      ),
+                    ),
                   ),
+
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showTerrain = !showTerrain;
+                          _imagePathButton3 = showTerrain
+                              ? 'assets/images/terrain.png'
+                              : 'assets/images/terrain-grey.png';
+                        });
+                      },
+                      child: Container(
+                        height: MediaQuery.of(context).size.width /
+                            4, // Ensuring the buttons are square
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(_imagePathButton3),
+                            fit: BoxFit.cover,
+                          ),
+                          border:
+                              null, // Optional: add a border to distinguish the buttons
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     setState(() {
+                  //       showIndividual = !showIndividual;
+                  //       _imagePathButton0 = showIndividual
+                  //           ? 'assets/images/icons-Individual1.png'
+                  //           : 'assets/images/icons-group1.png';
+                  //     });
+                  //   },
+                  //   child: Image.asset(
+                  //     _imagePathButton0,
+                  //     width: 50,
+                  //   ),
+                  // ),
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     setState(() {
+                  //       showHistory = !showHistory;
+                  //       _imagePathButton1 = showHistory
+                  //           ? 'assets/images/NOW+History9.png'
+                  //           : 'assets/images/NOW.png';
+                  //     });
+                  //   },
+                  //   child: Image.asset(
+                  //     _imagePathButton1,
+                  //     width: 50,
+                  //   ),
+                  // ),
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     setState(() {
+                  //       showSpirit = !showSpirit;
+                  //       _imagePathButton2 = showSpirit
+                  //           ? 'assets/images/spirit2.png'
+                  //           : 'assets/images/spirit2-grey.png';
+                  //     });
+                  //   },
+                  //   child: Image.asset(
+                  //     _imagePathButton2,
+                  //     width: 50,
+                  //   ),
+                  // ),
+                  // ElevatedButton(
+                  //   onPressed: () {
+                  //     setState(() {
+                  //       showTerrain = !showTerrain;
+                  //       _imagePathButton3 = showTerrain
+                  //           ? 'assets/images/terrain.png'
+                  //           : 'assets/images/terrain-grey.png';
+                  //     });
+                  //   },
+                  //   child: Image.asset(
+                  //     _imagePathButton3,
+                  //     width: 50,
+                  //   ),
+                  // ),
                 ],
               ),
             ],
