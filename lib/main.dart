@@ -300,24 +300,6 @@ class _ToggleScreenState extends State<ToggleScreen> {
                     ),
                   ),
           ),
-          if (_connectedDevice != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text('Button 1'),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text('Button 2'),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text('Button 3'),
-                ),
-              ],
-            ),
         ],
       ),
       floatingActionButton: _connectedDevice != null && _deviceId != null
@@ -922,7 +904,10 @@ class DeviceScreen extends StatefulWidget {
   _DeviceScreenState createState() => _DeviceScreenState();
 }
 
-class _DeviceScreenState extends State<DeviceScreen> {
+class _DeviceScreenState extends State<DeviceScreen>
+    with SingleTickerProviderStateMixin {
+  String _imagePathButton1 = 'assets/images/NOW.png';
+
   String receivedData = '';
   double temp = 0.0;
   int r = 255;
@@ -934,6 +919,19 @@ class _DeviceScreenState extends State<DeviceScreen> {
   bool toggleValue = false;
 
   List<Color> gradientColors = []; // Color.fromARGB(255,255,255,255)
+
+  static const int windowSize = 10; // Adjust the window size as needed
+  List<int> redValues = List.filled(windowSize, 0);
+  List<int> greenValues = List.filled(windowSize, 0);
+  List<int> blueValues = List.filled(windowSize, 0);
+  int index = 0;
+  int count = 0;
+
+  bool showHistory = false;
+  Color _currentColor = Colors.black;
+  Color _nextColor = Colors.black;
+  late AnimationController _controller;
+  late Animation<Color?> _colorAnimation;
 
   StreamSubscription<List<ScanResult>>? scanResultsSubscription;
   Map<String, int> deviceRssi = {};
@@ -987,10 +985,24 @@ class _DeviceScreenState extends State<DeviceScreen> {
     }
   }
 
+  void _animateColorTransition() {
+    _colorAnimation =
+        ColorTween(begin: _currentColor, end: _nextColor).animate(_controller)
+          ..addListener(() {
+            setState(() {});
+          });
+
+    _controller.reset();
+    _controller.forward().then((_) {
+      _currentColor = _nextColor;
+    });
+  }
+
 // Don't forget to cancel the bleSubscription when it's no longer needed
   @override
   void dispose() async {
     KeepScreenOn.turnOff();
+    _controller.dispose();
 
     _scanSubscription?.cancel();
     cleanUpScanning();
@@ -1007,7 +1019,16 @@ class _DeviceScreenState extends State<DeviceScreen> {
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: Duration(seconds: 1),
+      vsync: this,
+    );
 
+    _colorAnimation =
+        ColorTween(begin: _currentColor, end: _nextColor).animate(_controller)
+          ..addListener(() {
+            setState(() {});
+          });
     _streamSubscriptions.add(
       gyroscopeEvents.listen(
         (GyroscopeEvent event) {
@@ -1140,6 +1161,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
+                _updateAverageColor(_r, _g, _b);
 
                 double _bat = 0.0; //double.parse(splitData[2]);
 
@@ -1219,6 +1241,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
+                _updateAverageColor(_r, _g, _b);
 
                 double _bat = double.parse(splitData[2]);
 
@@ -1309,6 +1332,32 @@ class _DeviceScreenState extends State<DeviceScreen> {
     });
   }
 
+  void _updateAverageColor(int red, int green, int blue) {
+    if (count < windowSize) {
+      count++;
+    }
+    redValues[index] = red;
+    greenValues[index] = green;
+    blueValues[index] = blue;
+    index = (index + 1) % windowSize;
+
+    int redSum = redValues.take(count).reduce((a, b) => a + b);
+    int greenSum = greenValues.take(count).reduce((a, b) => a + b);
+    int blueSum = blueValues.take(count).reduce((a, b) => a + b);
+
+    int avgRed = (redSum / count).toInt();
+    int avgGreen = (greenSum / count).toInt();
+    int avgBlue = (blueSum / count).toInt();
+
+    print("#> color: _currentColor before: $_currentColor");
+    print("#> color: _nextColor before: $_nextColor");
+    _currentColor = _nextColor;
+    _nextColor = Color.fromARGB(255, avgRed, avgGreen, avgBlue);
+    print("#> color: _currentColor after: $_currentColor");
+    print("#> color: _nextColor after: $_nextColor");
+    _animateColorTransition();
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -1380,7 +1429,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
         // ),
         body: Container(
           key: ValueKey(gradientColors.length),
-          decoration: gradientColors.length >= 2
+          decoration: showHistory && gradientColors.length >= 2
               ? BoxDecoration(
                   gradient: RadialGradient(
                     center: const Alignment(0.0, 1.0),
@@ -1388,7 +1437,13 @@ class _DeviceScreenState extends State<DeviceScreen> {
                     colors: gradientColors,
                   ),
                 )
-              : null,
+              : BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0.0, 1.0),
+                    radius: AR, // 0.5,
+                    colors: [_currentColor, _colorAnimation.value!],
+                  ),
+                ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -1425,6 +1480,33 @@ class _DeviceScreenState extends State<DeviceScreen> {
               Text('Battery: ${bat.toStringAsFixed(2)}',
                   style: TextStyle(fontSize: 24)),
               SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        showHistory = !showHistory;
+                        _imagePathButton1 = showHistory
+                            ? 'assets/images/NOW+History9.png'
+                            : 'assets/images/NOW.png';
+                      });
+                    },
+                    child: Image.asset(
+                      _imagePathButton1,
+                      width: 60,
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: Text('Button 2'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: Text('Button 3'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
