@@ -52,46 +52,15 @@ void main() {
   // runApp(MyApp());
 }
 
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'RFID Scanner App',
-//       theme: ThemeData(
-//         primarySwatch: Colors.blue,
-//       ),
-//       // home: FirstScreen(),
-//       home: FutureBuilder(
-//         future: _checkDeviceId(),
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return CircularProgressIndicator();
-//           } else if (snapshot.hasData && snapshot.data == true) {
-//             return ToggleScreen();
-//           } else {
-//             return FirstScreen();
-//           }
-//         },
-//       ),
-//       debugShowCheckedModeBanner: false,
-//     );
-//   }
-
-//   Future<bool> _checkDeviceId() async {
-//     SharedPreferences prefs = await SharedPreferences.getInstance();
-//     String? deviceId = prefs.getString('device_id');
-//     print("Got from sharedPrefs $deviceId");
-//     return deviceId != null;
-//   }
-// }
-
 class MyApp extends StatelessWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (context) => DeviceProvider(),
       child: MaterialApp(
-        title: 'RFID Scanner App',
+        title: 'Moody',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
@@ -104,35 +73,15 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-
-        // home: FutureBuilder<bool>(
-        //   future: _checkDeviceId(),
-        //   builder: (context, snapshot) {
-        //     if (snapshot.connectionState == ConnectionState.waiting) {
-        //       return Scaffold(
-        //         body: Center(child: CircularProgressIndicator()),
-        //       );
-        //     } else if (snapshot.hasData && snapshot.data == true) {
-        //       return ToggleScreen();
-        //     } else {
-        //       return FirstScreen();
-        //     }
-        //   },
-        // ),
         debugShowCheckedModeBanner: false,
       ),
     );
   }
-
-  Future<bool> _checkDeviceId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? deviceId = prefs.getString('device_id');
-    print("Got from sharedPrefs: $deviceId");
-    return deviceId != null;
-  }
 }
 
 class ToggleScreen extends StatefulWidget {
+  const ToggleScreen({Key? key}) : super(key: key);
+
   @override
   _ToggleScreenState createState() => _ToggleScreenState();
 }
@@ -140,7 +89,6 @@ class ToggleScreen extends StatefulWidget {
 class _ToggleScreenState extends State<ToggleScreen> {
   BluetoothDevice? _connectedDevice;
   String? _deviceId;
-  bool _isScanning = false;
 
   @override
   void initState() {
@@ -157,62 +105,19 @@ class _ToggleScreenState extends State<ToggleScreen> {
   }
 
   void _startScan() {
-    setState(() {
-      _isScanning = true;
-    });
     FlutterBluePlus.scanResults.listen((scanResults) {
-      // showDialog(
-      //   context: context,
-      //   builder: (BuildContext context) {
-      //     return AlertDialog(
-      //       title: Text('Forget Device'),
-      //       content: Consumer<DeviceProvider>(
-      //         builder: (context, deviceProvider, child) {
-      //           return Text(
-      //             'Are you sure you want to forget the device with ID: ${deviceProvider.deviceId}?',
-      //           );
-      //         },
-      //       ),
-      //       actions: [
-      //         TextButton(
-      //           child: Text('Cancel'),
-      //           onPressed: () {
-      //             Navigator.of(context).pop();
-      //           },
-      //         ),
-      //         TextButton(
-      //           child: Text('Yes'),
-      //           onPressed: () {
-      //             Provider.of<DeviceProvider>(context, listen: false)
-      //                 .deleteDeviceId();
-      //             Navigator.of(context).pop();
-      //           },
-      //         ),
-      //       ],
-      //     );
-      //   },
-      // );
       for (ScanResult scanResult in scanResults) {
         if (scanResult.device.platformName.toString() == _deviceId) {
           FlutterBluePlus.stopScan();
           setState(() {
             _connectedDevice = scanResult.device;
-            _isScanning = false;
           });
         }
       }
     });
     // FlutterBluePlus.isScanning
     FlutterBluePlus.startScan(
-            timeout: const Duration(seconds: 15),
-            androidUsesFineLocation: false)
-        .then((_) {
-      // print("shared set scanning false");
-      // await
-      // setState(() {
-      //   _isScanning = false;
-      // });
-    });
+        timeout: const Duration(seconds: 15), androidUsesFineLocation: false);
   }
 
   void _showDeleteConfirmationDialog(BuildContext context) {
@@ -220,7 +125,7 @@ class _ToggleScreenState extends State<ToggleScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Forget Device'),
+          title: const Text('Forget Device'),
           content: Consumer<DeviceProvider>(
             builder: (context, deviceProvider, child) {
               return Text(
@@ -230,13 +135,13 @@ class _ToggleScreenState extends State<ToggleScreen> {
           ),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Yes'),
+              child: const Text('Yes'),
               onPressed: () {
                 Provider.of<DeviceProvider>(context, listen: false)
                     .deleteDeviceId();
@@ -281,8 +186,8 @@ class _ToggleScreenState extends State<ToggleScreen> {
                                 (snapshot.connectionState ==
                                         ConnectionState.active &&
                                     snapshot.data!))
-                              CircularProgressIndicator(),
-                            SizedBox(
+                              const CircularProgressIndicator(),
+                            const SizedBox(
                                 height:
                                     16), // Add some space between the indicator and the text
                             Text('Connecting to ${_deviceId ?? 'null'}'),
@@ -291,7 +196,7 @@ class _ToggleScreenState extends State<ToggleScreen> {
                                 !snapshot.data!)
                               ElevatedButton(
                                 onPressed: _startScan,
-                                child: Text('Start Scanning Again'),
+                                child: const Text('Start Scanning Again'),
                               )
                           ],
                         );
@@ -305,28 +210,16 @@ class _ToggleScreenState extends State<ToggleScreen> {
           ? null
           : FloatingActionButton(
               onPressed: () => _showDeleteConfirmationDialog(context),
-              child: Icon(Icons.delete),
+              child: const Icon(Icons.delete),
               tooltip: 'Forget Device',
             ),
     );
   }
 }
 
-// class ToggleScreen extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Toggle Screen'),
-//       ),
-//       body: Center(
-//         child: Text('This is the toggle screen'),
-//       ),
-//     );
-//   }
-// }
-
 class FirstScreen extends StatefulWidget {
+  const FirstScreen({Key? key}) : super(key: key);
+
   @override
   _FirstScreenState createState() => _FirstScreenState();
 }
@@ -349,7 +242,7 @@ class _FirstScreenState extends State<FirstScreen> {
       print('poll');
       try {
         NFCTag tag = await FlutterNfcKit.poll(
-            timeout: Duration(seconds: 3),
+            timeout: const Duration(seconds: 3),
             iosMultipleTagMessage: 'Multiple tags found!',
             iosAlertMessage:
                 'Scan your tag'); //timeout: Duration(milliseconds: 750)
@@ -409,7 +302,7 @@ class _FirstScreenState extends State<FirstScreen> {
 
         if (!found) {
           print('No moody device');
-          final snackBar = SnackBar(content: Text('No MOODY device'));
+          final snackBar = const SnackBar(content: Text('No MOODY device'));
           snackBarKeyNFC.currentState?.showSnackBar(snackBar);
         } else {
           if (Platform.isAndroid) {
@@ -444,7 +337,7 @@ class _FirstScreenState extends State<FirstScreen> {
         key: snackBarKeyNFC,
         child: Scaffold(
           appBar: AppBar(
-            title: Text('Connect MOODY device'),
+            title: const Text('Connect MOODY device'),
           ),
           body: Center(
             child: Column(
@@ -454,7 +347,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   children: <Widget>[
                     Container(
                       width: 150.0,
-                      child: Text(
+                      child: const Text(
                         'Scan your moody device with your phone, or enter the number',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -476,7 +369,7 @@ class _FirstScreenState extends State<FirstScreen> {
                                 () {}); // To ensure the button's onPressed status gets updated.
                           }
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           hintText: 'Device ID',
                         ),
@@ -485,7 +378,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   ],
                 ),
                 ElevatedButton(
-                  child: Text('Go to second screen'),
+                  child: const Text('Go to second screen'),
                   onPressed: deviceId.isNotEmpty &&
                           moodyDeviceNameRegExp.hasMatch(deviceId.toUpperCase())
                       ? () {
@@ -506,7 +399,7 @@ class _FirstScreenState extends State<FirstScreen> {
                       : null,
                 ),
                 ElevatedButton(
-                  child: !polling ? Text('Scan') : Text('Stop'),
+                  child: !polling ? const Text('Scan') : const Text('Stop'),
                   onPressed: !polling
                       ? () {
                           //_deviceIdController.clear();
@@ -529,7 +422,7 @@ class _FirstScreenState extends State<FirstScreen> {
                         },
                 ),
                 ElevatedButton(
-                  child: Text('Clear'),
+                  child: const Text('Clear'),
                   onPressed: deviceId.isNotEmpty
                       ? () {
                           _deviceIdController.clear();
@@ -541,7 +434,7 @@ class _FirstScreenState extends State<FirstScreen> {
                   builder: (context, deviceProvider, child) {
                     return Column(
                       children: [
-                        Text(
+                        const Text(
                           'Previously connected devices:',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),
@@ -558,8 +451,8 @@ class _FirstScreenState extends State<FirstScreen> {
                             },
                             child: Text(
                               id,
-                              style:
-                                  TextStyle(fontSize: 14, color: Colors.blue),
+                              style: const TextStyle(
+                                  fontSize: 14, color: Colors.blue),
                             ),
                           ),
                         ),
@@ -695,7 +588,7 @@ class _DeviceScreenState extends State<DeviceScreen>
           timeout: const Duration(seconds: 15), androidUsesFineLocation: false);
       print('>>> Startscan END');
 
-      Future.delayed(Duration(seconds: 15), () async {
+      Future.delayed(const Duration(seconds: 15), () async {
         // Stop scanning
         //  _scanSubscription?.cancel();""
         print('>>> Stopscan START');
@@ -742,7 +635,7 @@ class _DeviceScreenState extends State<DeviceScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(seconds: 1),
+      duration: const Duration(seconds: 1),
       vsync: this,
     );
 
@@ -823,7 +716,7 @@ class _DeviceScreenState extends State<DeviceScreen>
 
     KeepScreenOn.turnOn();
 
-    final snackBar = SnackBar(content: Text('Connected'));
+    final snackBar = const SnackBar(content: Text('Connected'));
     snackBarKeyC.currentState?.showSnackBar(snackBar);
 
     // await widget.device.requestMtu(128);
@@ -1171,8 +1064,8 @@ class _DeviceScreenState extends State<DeviceScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              SizedBox(height: 10),
-              Text('Your Title'),
+              const SizedBox(height: 10),
+              const Text('Your Title'),
               Slider(
                 value: sliderValue,
                 min: 0,
@@ -1196,14 +1089,14 @@ class _DeviceScreenState extends State<DeviceScreen>
                 },
               ),
               Text('Device ID: ${widget.device.localName}',
-                  style: TextStyle(fontSize: 10)),
+                  style: const TextStyle(fontSize: 10)),
               Text(
                   'Temperature: ${(temp < 1 ? temp * 100 : temp).toStringAsFixed(2)}°C',
-                  style: TextStyle(fontSize: 24)),
-              SizedBox(height: 10),
+                  style: const TextStyle(fontSize: 24)),
+              const SizedBox(height: 10),
               Text('Battery: ${bat.toStringAsFixed(2)}',
-                  style: TextStyle(fontSize: 24)),
-              SizedBox(height: 10),
+                  style: const TextStyle(fontSize: 24)),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -1231,7 +1124,6 @@ class _DeviceScreenState extends State<DeviceScreen>
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -1256,7 +1148,6 @@ class _DeviceScreenState extends State<DeviceScreen>
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -1281,7 +1172,6 @@ class _DeviceScreenState extends State<DeviceScreen>
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -1306,63 +1196,6 @@ class _DeviceScreenState extends State<DeviceScreen>
                       ),
                     ),
                   ),
-
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     setState(() {
-                  //       showIndividual = !showIndividual;
-                  //       _imagePathButton0 = showIndividual
-                  //           ? 'assets/images/icons-Individual1.png'
-                  //           : 'assets/images/icons-group1.png';
-                  //     });
-                  //   },
-                  //   child: Image.asset(
-                  //     _imagePathButton0,
-                  //     width: 50,
-                  //   ),
-                  // ),
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     setState(() {
-                  //       showHistory = !showHistory;
-                  //       _imagePathButton1 = showHistory
-                  //           ? 'assets/images/NOW+History9.png'
-                  //           : 'assets/images/NOW.png';
-                  //     });
-                  //   },
-                  //   child: Image.asset(
-                  //     _imagePathButton1,
-                  //     width: 50,
-                  //   ),
-                  // ),
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     setState(() {
-                  //       showSpirit = !showSpirit;
-                  //       _imagePathButton2 = showSpirit
-                  //           ? 'assets/images/spirit2.png'
-                  //           : 'assets/images/spirit2-grey.png';
-                  //     });
-                  //   },
-                  //   child: Image.asset(
-                  //     _imagePathButton2,
-                  //     width: 50,
-                  //   ),
-                  // ),
-                  // ElevatedButton(
-                  //   onPressed: () {
-                  //     setState(() {
-                  //       showTerrain = !showTerrain;
-                  //       _imagePathButton3 = showTerrain
-                  //           ? 'assets/images/terrain.png'
-                  //           : 'assets/images/terrain-grey.png';
-                  //     });
-                  //   },
-                  //   child: Image.asset(
-                  //     _imagePathButton3,
-                  //     width: 50,
-                  //   ),
-                  // ),
                 ],
               ),
             ],
