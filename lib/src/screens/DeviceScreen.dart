@@ -14,6 +14,9 @@ import 'package:moody/src/widgets/toggle_image_button.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+//final String serverHost = '192.168.10.139:2000';
+const String serverHost = '134.122.18.168:2000';
+
 class DeviceScreen extends StatefulWidget {
   const DeviceScreen({Key? key, required this.device, required this.deviceId})
       : super(key: key);
@@ -518,6 +521,60 @@ class _DeviceScreenState extends State<DeviceScreen>
     _animateColorTransition();
   }
 
+  double voltageToPercentage(double voltage) {
+    // Define voltage to percentage mapping
+    Map<double, int> voltageMap = {
+      4.20: 100,
+      4.15: 95,
+      4.10: 90,
+      4.05: 85,
+      4.00: 80,
+      3.95: 75,
+      3.90: 70,
+      3.85: 65,
+      3.80: 60,
+      3.75: 55,
+      3.70: 50,
+      3.65: 45,
+      3.60: 40,
+      3.55: 35,
+      3.50: 30,
+      3.45: 25,
+      3.40: 20,
+      3.35: 15,
+      3.30: 10,
+      3.25: 5,
+      3.20: 0,
+    };
+
+    // Ensure voltage is within the range
+    if (voltage >= 4.20) return 100;
+    if (voltage <= 3.20) return 0;
+
+    // Find the two points for interpolation
+    double lowerVoltage = 3.20;
+    double upperVoltage = 4.20;
+    for (double v in voltageMap.keys) {
+      if (v <= voltage && v > lowerVoltage) {
+        lowerVoltage = v;
+      }
+      if (v >= voltage && v < upperVoltage) {
+        upperVoltage = v;
+      }
+    }
+
+    int lowerPercentage = voltageMap[lowerVoltage]!;
+    int upperPercentage = voltageMap[upperVoltage]!;
+
+    // Linear interpolation
+    double percentage = lowerPercentage +
+        (voltage - lowerVoltage) *
+            (upperPercentage - lowerPercentage) /
+            (upperVoltage - lowerVoltage);
+
+    return percentage;
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -593,7 +650,7 @@ class _DeviceScreenState extends State<DeviceScreen>
               ? (buttonStates["showHistory"]! && gradientColors.length >= 2
                   ? BoxDecoration(
                       gradient: RadialGradient(
-                        center: const Alignment(0.0, 1.0),
+                        center: const Alignment(0.0, -0.5),
                         radius: AR, // 0.5,
                         colors: gradientColors,
                       ),
@@ -606,200 +663,224 @@ class _DeviceScreenState extends State<DeviceScreen>
                       ),
                     ))
               : null,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              const SizedBox(height: 10),
-              const Text('Your Title'),
-              Slider(
-                value: sliderValue,
-                min: 0,
-                max: 100,
-                onChanged: (double value) {
-                  if (mounted) {
-                    setState(() {
-                      sliderValue = value;
-                    });
-                  }
-                },
-              ),
-              Switch(
-                value: toggleValue,
-                onChanged: (bool value) {
-                  if (mounted) {
-                    setState(() {
-                      toggleValue = value;
-                    });
-                  }
-                },
-              ),
-              Text('Device ID: ${widget.device.localName}',
-                  style: const TextStyle(fontSize: 10)),
-              Text(
-                  'Temperature: ${(temp < 1 ? temp * 100 : temp).toStringAsFixed(2)}°C',
-                  style: const TextStyle(fontSize: 24)),
-              const SizedBox(height: 10),
-              Text('Battery: ${bat.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 24)),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  /*
-                    bool showIndividual = false;
-  bool showHistory = false;
-  bool showSpirit = true;
-  bool showTerrain = true;
-  */
-                  ToggleImageButton(
-                    initialImage: 'assets/images/icons-Individual1.png',
-                    toggledImage: 'assets/images/icons-group1.png',
-                    initialState: buttonStates["showIndividual"]!,
-                    onToggle: (isToggled) =>
-                        _handleToggle(isToggled, "showIndividual"),
-                  ),
-                  ToggleImageButton(
-                    initialImage: 'assets/images/NOW.png',
-                    toggledImage: 'assets/images/NOW+History9.png',
-                    initialState: buttonStates["showHistory"]!,
-                    onToggle: (isToggled) =>
-                        _handleToggle(isToggled, "showHistory"),
-                  ),
-                  ToggleImageButton(
-                    initialImage: 'assets/images/spirit2-grey.png',
-                    toggledImage: 'assets/images/spirit2.png',
-                    initialState: buttonStates["showSpirit"]!,
-                    onToggle: (isToggled) =>
-                        _handleToggle(isToggled, "showSpirit"),
-                  ),
-                  ToggleImageButton(
-                    initialImage: 'assets/images/terrain-grey.png',
-                    toggledImage: 'assets/images/terrain.png',
-                    initialState: buttonStates["showTerrain"]!,
-                    onToggle: (isToggled) =>
-                        _handleToggle(isToggled, "showTerrain"),
-                  ),
+          child: SafeArea(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                // const SizedBox(height: 10),
+                // const Text('Your Title'),
+                // Slider(
+                //   value: sliderValue,
+                //   min: 0,
+                //   max: 100,
+                //   onChanged: (double value) {
+                //     if (mounted) {
+                //       setState(() {
+                //         sliderValue = value;
+                //       });
+                //     }
+                //   },
+                // ),
+                // Switch(
+                //   value: toggleValue,
+                //   onChanged: (bool value) {
+                //     if (mounted) {
+                //       setState(() {
+                //         toggleValue = value;
+                //       });
+                //     }
+                //   },
+                // ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(widget.device.platformName,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 10,
+                          )),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                          '${voltageToPercentage(bat).toStringAsFixed(2)}%',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 10,
+                          )),
+                    ),
+                  ],
+                ),
+                // Text(
+                //     'Temperature: ${(temp < 1 ? temp * 100 : temp).toStringAsFixed(2)}°C',
+                //     style: const TextStyle(fontSize: 24)),
+                // const SizedBox(height: 10),
+                // Text('Battery: ${bat.toStringAsFixed(2)}',
+                //     style: const TextStyle(fontSize: 24)),
+                // const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    /*
+                      bool showIndividual = false;
+            bool showHistory = false;
+            bool showSpirit = true;
+            bool showTerrain = true;
+            */
+                    ToggleImageButton(
+                      initialImage: 'assets/images/icons-Individual1.png',
+                      toggledImage: 'assets/images/icons-group1.png',
+                      initialState: buttonStates["showIndividual"]!,
+                      onToggle: (isToggled) =>
+                          _handleToggle(isToggled, "showIndividual"),
+                      disabled: true,
+                    ),
+                    ToggleImageButton(
+                      initialImage: 'assets/images/NOW.png',
+                      toggledImage: 'assets/images/NOW+History9.png',
+                      initialState: buttonStates["showHistory"]!,
+                      onToggle: (isToggled) =>
+                          _handleToggle(isToggled, "showHistory"),
+                    ),
+                    ToggleImageButton(
+                      initialImage: 'assets/images/spirit2-grey.png',
+                      toggledImage: 'assets/images/spirit2.png',
+                      initialState: buttonStates["showSpirit"]!,
+                      onToggle: (isToggled) =>
+                          _handleToggle(isToggled, "showSpirit"),
+                    ),
+                    ToggleImageButton(
+                      initialImage: 'assets/images/terrain-grey.png',
+                      toggledImage: 'assets/images/terrain.png',
+                      initialState: buttonStates["showTerrain"]!,
+                      onToggle: (isToggled) =>
+                          _handleToggle(isToggled, "showTerrain"),
+                      disabled: true,
+                    ),
 
-                  // ToggleImageButton(
-                  //   initialImage: 'assets/images/icons-Individual1.png',
-                  //   toggledImage: 'assets/images/icons-group1.png',
-                  //   onToggle: (isToggled) => _handleToggle(isToggled, showIndividual),
-                  // ),
-                  // ToggleImageButton(
-                  //   initialImage: 'assets/images/NOW+History9.png',
-                  //   toggledImage: 'assets/images/NOW.png',
-                  //   onToggle: (isToggled) => _handleToggle(isToggled, showHistory),
-                  // ),
-                  // ToggleImageButton(
-                  //   initialImage: 'assets/images/spirit2.png',
-                  //   toggledImage: 'assets/images/spirit2-grey.png',
-                  //   onToggle: (isToggled) => _handleToggle(isToggled, showSpirit),
-                  // ),
-                  // ToggleImageButton(
-                  //   initialImage: 'assets/images/terrain-grey.png',
-                  //   toggledImage: 'assets/images/terrain.png',
-                  //   onToggle: (isToggled) => _handleToggle(isToggled, showTerrain),
-                  // ),
+                    // ToggleImageButton(
+                    //   initialImage: 'assets/images/icons-Individual1.png',
+                    //   toggledImage: 'assets/images/icons-group1.png',
+                    //   onToggle: (isToggled) => _handleToggle(isToggled, showIndividual),
+                    // ),
+                    // ToggleImageButton(
+                    //   initialImage: 'assets/images/NOW+History9.png',
+                    //   toggledImage: 'assets/images/NOW.png',
+                    //   onToggle: (isToggled) => _handleToggle(isToggled, showHistory),
+                    // ),
+                    // ToggleImageButton(
+                    //   initialImage: 'assets/images/spirit2.png',
+                    //   toggledImage: 'assets/images/spirit2-grey.png',
+                    //   onToggle: (isToggled) => _handleToggle(isToggled, showSpirit),
+                    // ),
+                    // ToggleImageButton(
+                    //   initialImage: 'assets/images/terrain-grey.png',
+                    //   toggledImage: 'assets/images/terrain.png',
+                    //   onToggle: (isToggled) => _handleToggle(isToggled, showTerrain),
+                    // ),
 
-                  // Expanded(
-                  //   child: GestureDetector(
-                  //     onTap: () {
-                  //       setState(() {
-                  //         showIndividual = !showIndividual;
-                  //         _imagePathButton0 = showIndividual
-                  //             ? 'assets/images/icons-Individual1.png'
-                  //             : 'assets/images/icons-group1.png';
-                  //       });
-                  //     },
-                  //     child: Container(
-                  //       height: MediaQuery.of(context).size.width /
-                  //           4, // Ensuring the buttons are square
-                  //       decoration: BoxDecoration(
-                  //         image: DecorationImage(
-                  //           image: AssetImage(_imagePathButton0),
-                  //           fit: BoxFit.cover,
-                  //         ),
-                  //         border:
-                  //             null, // Optional: add a border to distinguish the buttons
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  // Expanded(
-                  //   child: GestureDetector(
-                  //     onTap: () {
-                  //       setState(() {
-                  //         showHistory = !showHistory;
-                  //         _imagePathButton1 = showHistory
-                  //             ? 'assets/images/NOW+History9.png'
-                  //             : 'assets/images/NOW.png';
-                  //       });
-                  //     },
-                  //     child: Container(
-                  //       height: MediaQuery.of(context).size.width /
-                  //           4, // Ensuring the buttons are square
-                  //       decoration: BoxDecoration(
-                  //         image: DecorationImage(
-                  //           image: AssetImage(_imagePathButton1),
-                  //           fit: BoxFit.cover,
-                  //         ),
-                  //         border:
-                  //             null, // Optional: add a border to distinguish the buttons
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  // Expanded(
-                  //   child: GestureDetector(
-                  //     onTap: () {
-                  //       setState(() {
-                  //         showSpirit = !showSpirit;
-                  //         _imagePathButton2 = showSpirit
-                  //             ? 'assets/images/spirit2.png'
-                  //             : 'assets/images/spirit2-grey.png';
-                  //       });
-                  //     },
-                  //     child: Container(
-                  //       height: MediaQuery.of(context).size.width /
-                  //           4, // Ensuring the buttons are square
-                  //       decoration: BoxDecoration(
-                  //         image: DecorationImage(
-                  //           image: AssetImage(_imagePathButton2),
-                  //           fit: BoxFit.cover,
-                  //         ),
-                  //         border:
-                  //             null, // Optional: add a border to distinguish the buttons
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  // Expanded(
-                  //   child: GestureDetector(
-                  //     onTap: () {
-                  //       setState(() {
-                  //         showTerrain = !showTerrain;
-                  //         _imagePathButton3 = showTerrain
-                  //             ? 'assets/images/terrain.png'
-                  //             : 'assets/images/terrain-grey.png';
-                  //       });
-                  //     },
-                  //     child: Container(
-                  //       height: MediaQuery.of(context).size.width /
-                  //           4, // Ensuring the buttons are square
-                  //       decoration: BoxDecoration(
-                  //         image: DecorationImage(
-                  //           image: AssetImage(_imagePathButton3),
-                  //           fit: BoxFit.cover,
-                  //         ),
-                  //         border:
-                  //             null, // Optional: add a border to distinguish the buttons
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                ],
-              ),
-            ],
+                    // Expanded(
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       setState(() {
+                    //         showIndividual = !showIndividual;
+                    //         _imagePathButton0 = showIndividual
+                    //             ? 'assets/images/icons-Individual1.png'
+                    //             : 'assets/images/icons-group1.png';
+                    //       });
+                    //     },
+                    //     child: Container(
+                    //       height: MediaQuery.of(context).size.width /
+                    //           4, // Ensuring the buttons are square
+                    //       decoration: BoxDecoration(
+                    //         image: DecorationImage(
+                    //           image: AssetImage(_imagePathButton0),
+                    //           fit: BoxFit.cover,
+                    //         ),
+                    //         border:
+                    //             null, // Optional: add a border to distinguish the buttons
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // Expanded(
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       setState(() {
+                    //         showHistory = !showHistory;
+                    //         _imagePathButton1 = showHistory
+                    //             ? 'assets/images/NOW+History9.png'
+                    //             : 'assets/images/NOW.png';
+                    //       });
+                    //     },
+                    //     child: Container(
+                    //       height: MediaQuery.of(context).size.width /
+                    //           4, // Ensuring the buttons are square
+                    //       decoration: BoxDecoration(
+                    //         image: DecorationImage(
+                    //           image: AssetImage(_imagePathButton1),
+                    //           fit: BoxFit.cover,
+                    //         ),
+                    //         border:
+                    //             null, // Optional: add a border to distinguish the buttons
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // Expanded(
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       setState(() {
+                    //         showSpirit = !showSpirit;
+                    //         _imagePathButton2 = showSpirit
+                    //             ? 'assets/images/spirit2.png'
+                    //             : 'assets/images/spirit2-grey.png';
+                    //       });
+                    //     },
+                    //     child: Container(
+                    //       height: MediaQuery.of(context).size.width /
+                    //           4, // Ensuring the buttons are square
+                    //       decoration: BoxDecoration(
+                    //         image: DecorationImage(
+                    //           image: AssetImage(_imagePathButton2),
+                    //           fit: BoxFit.cover,
+                    //         ),
+                    //         border:
+                    //             null, // Optional: add a border to distinguish the buttons
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // Expanded(
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       setState(() {
+                    //         showTerrain = !showTerrain;
+                    //         _imagePathButton3 = showTerrain
+                    //             ? 'assets/images/terrain.png'
+                    //             : 'assets/images/terrain-grey.png';
+                    //       });
+                    //     },
+                    //     child: Container(
+                    //       height: MediaQuery.of(context).size.width /
+                    //           4, // Ensuring the buttons are square
+                    //       decoration: BoxDecoration(
+                    //         image: DecorationImage(
+                    //           image: AssetImage(_imagePathButton3),
+                    //           fit: BoxFit.cover,
+                    //         ),
+                    //         border:
+                    //             null, // Optional: add a border to distinguish the buttons
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
