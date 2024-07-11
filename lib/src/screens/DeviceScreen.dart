@@ -750,6 +750,7 @@ class _DeviceScreenState extends State<DeviceScreen>
                       initialState: buttonStates["showSpirit"]!,
                       onToggle: (isToggled) =>
                           _handleToggle(isToggled, "showSpirit"),
+                      disabled: true,
                     ),
                     ToggleImageButton(
                       initialImage: 'assets/images/terrain-grey.png',
