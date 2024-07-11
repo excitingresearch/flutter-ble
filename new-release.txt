@@ -1,0 +1,11 @@
+in main.dart:
+change version-number
+this version-number put in /var/www/html/excitingresearch.io/public/APK/version.txt
+
+build apk: flutter build apk
+
+rename build\app\outputs\flutter-apk\app-release.apk to moody-version-number.apk
+
+put moody-version-number.apk into /var/www/html/excitingresearch.io/public/APK
+
+update /var/www/html/excitingresearch.io/public/index.html <a href="...">Download APK</a>

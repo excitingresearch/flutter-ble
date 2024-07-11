@@ -27,7 +27,7 @@ final RegExp moodyDeviceNameRegExp = RegExp(
     r'^([mM][0-9]{3}|MOODY_[0-9A-Fa-f]{4}|moody_[0-9A-Fa-f]{4})$'); // new firmware auto generated device names from MAC
 
 const String currentVersion = "20240711-0";
-const String appVersionURL = 'https://fgmnts.be/moody_version.txt';
+const String appVersionURL = 'https://excitingresearch.io/APK/version.txt';
 
 const String newVersionText =
     'A newer version of the app is available. Please visit https://excitingresearch.io/ to download the latest APK.';
