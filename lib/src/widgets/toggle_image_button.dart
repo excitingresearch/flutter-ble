@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import './greyscale_image.dart';
 
 class ToggleImageButton extends StatefulWidget {
   final String initialImage;
@@ -47,19 +48,11 @@ class _ToggleImageButtonState extends State<ToggleImageButton> {
   Widget build(BuildContext context) {
     return Expanded(
       child: GestureDetector(
-        onTap: _toggleImage,
-        child: Container(
-          height: MediaQuery.of(context).size.width /
-              4, // Ensuring the buttons are square
-          decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage(_imagePath),
-                fit: BoxFit.cover,
-                opacity: _enable ? 1 : 0.8),
-            border: null, // Optional: add a border to distinguish the buttons
-          ),
-        ),
-      ),
+          onTap: _toggleImage,
+          child: GreyscaleImage(
+            imagePath: _imagePath,
+            enable: _enable,
+          )),
     );
   }
 }

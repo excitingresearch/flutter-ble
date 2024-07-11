@@ -29,6 +29,9 @@ final RegExp moodyDeviceNameRegExp = RegExp(
 const String currentVersion = "20240711-0";
 const String appVersionURL = 'https://fgmnts.be/moody_version.txt';
 
+const String newVersionText =
+    'A newer version of the app is available. Please visit the website to download the latest APK.';
+
 void main() {
   if (Platform.isAndroid) {
     WidgetsFlutterBinding.ensureInitialized();
@@ -146,8 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (showUpdate)
             AlertDialog(
               title: const Text('Update Available'),
-              content: const Text(
-                  'A newer version of the app is available. Please visit the website to download the latest APK.'),
+              content: const Text(newVersionText),
               actions: [
                 TextButton(
                   onPressed: () {
