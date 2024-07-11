@@ -90,6 +90,7 @@ class _DeviceScreenState extends State<DeviceScreen>
   List<int> blueValues = List.filled(windowSize, 0);
   int index = 0;
   int count = 0;
+  bool serverOnline = true;
 
   Color _currentColor = Colors.black;
   Color _nextColor = Colors.black;
@@ -355,36 +356,37 @@ class _DeviceScreenState extends State<DeviceScreen>
                 }
 
                 // cleanUpScanning();
+                if (serverOnline) {
+                  final response = await http.get(
+                    Uri.http(serverHost, '/addData', {
+                      'moodid': widget.deviceId,
+                      'temperature': localTemp.toStringAsFixed(2),
+                      'battery': _bat.toStringAsFixed(2),
+                      'color': jsonEncode([_r, _g, _b]),
+                      'excitement': '0',
+                      'location': jsonEncode([
+                        _currentPosition?.latitude,
+                        _currentPosition?.longitude
+                      ]),
+                      'proximity': jsonEncode(deviceRssi.entries
+                          .map((entry) =>
+                              {'id': entry.key, 'distance': entry.value})
+                          .toList()),
+                      'gyro': jsonEncode(_gyroscopeValues),
+                    }),
+                  );
 
-                final response = await http.get(
-                  Uri.http(serverHost, '/addData', {
-                    'moodid': widget.deviceId,
-                    'temperature': localTemp.toStringAsFixed(2),
-                    'battery': _bat.toStringAsFixed(2),
-                    'color': jsonEncode([_r, _g, _b]),
-                    'excitement': '0',
-                    'location': jsonEncode([
-                      _currentPosition?.latitude,
-                      _currentPosition?.longitude
-                    ]),
-                    'proximity': jsonEncode(deviceRssi.entries
-                        .map((entry) =>
-                            {'id': entry.key, 'distance': entry.value})
-                        .toList()),
-                    'gyro': jsonEncode(_gyroscopeValues),
-                  }),
-                );
-
-                if (response.statusCode == 200) {
-                  // If the server returns a 200 OK response,
-                  // then parse the JSON.
-                  print('Response data: ${(response.body)}');
-                } else {
-                  // If the server did not return a 200 OK response,
-                  // then throw an exception.
-                  throw Exception('Failed to get data.');
+                  if (response.statusCode == 200) {
+                    // If the server returns a 200 OK response,
+                    // then parse the JSON.
+                    print('Response data: ${(response.body)}');
+                  } else {
+                    // If the server did not return a 200 OK response,
+                    // then throw an exception.
+                    serverOnline = false;
+                    throw Exception('Failed to get data.');
+                  }
                 }
-
                 print('>>> Try resetDevicesDataAndScan');
                 resetDevicesDataAndScan();
               } else if (splitData.length > 2 && splitData[1] != 'None') {
@@ -435,38 +437,42 @@ class _DeviceScreenState extends State<DeviceScreen>
                 }
 
                 // cleanUpScanning();
+                if (serverOnline) {
+                  try {
+                    final response = await http.get(
+                      Uri.http(serverHost, '/addData', {
+                        'moodid': widget.deviceId,
+                        'temperature': localTemp.toStringAsFixed(2),
+                        'battery': _bat.toStringAsFixed(2),
+                        'color': jsonEncode([_r, _g, _b]),
+                        'excitement': '0',
+                        'location': jsonEncode([
+                          _currentPosition?.latitude,
+                          _currentPosition?.longitude
+                        ]),
+                        'proximity': jsonEncode(deviceRssi.entries
+                            .map((entry) =>
+                                {'id': entry.key, 'distance': entry.value})
+                            .toList()),
+                        'gyro': jsonEncode(_gyroscopeValues),
+                      }),
+                    );
 
-                try {
-                  final response = await http.get(
-                    Uri.http(serverHost, '/addData', {
-                      'moodid': widget.deviceId,
-                      'temperature': localTemp.toStringAsFixed(2),
-                      'battery': _bat.toStringAsFixed(2),
-                      'color': jsonEncode([_r, _g, _b]),
-                      'excitement': '0',
-                      'location': jsonEncode([
-                        _currentPosition?.latitude,
-                        _currentPosition?.longitude
-                      ]),
-                      'proximity': jsonEncode(deviceRssi.entries
-                          .map((entry) =>
-                              {'id': entry.key, 'distance': entry.value})
-                          .toList()),
-                      'gyro': jsonEncode(_gyroscopeValues),
-                    }),
-                  );
+                    if (response.statusCode == 200) {
+                      // If the server returns a 200 OK response,
+                      // then parse the JSON.
+                      print('Response data: ${(response.body)}');
+                    } else {
+                      // If the server did not return a 200 OK response,
+                      // then throw an exception.
+                      serverOnline = false;
 
-                  if (response.statusCode == 200) {
-                    // If the server returns a 200 OK response,
-                    // then parse the JSON.
-                    print('Response data: ${(response.body)}');
-                  } else {
-                    // If the server did not return a 200 OK response,
-                    // then throw an exception.
-                    throw Exception('Failed to get data.');
+                      throw Exception('Failed to get data.');
+                    }
+                  } on Exception catch (e) {
+                    serverOnline = false;
+                    print("Error server $e");
                   }
-                } on Exception catch (e) {
-                  print("Error server $e");
                 }
 
                 print('>>> Try resetDevicesDataAndScan');
