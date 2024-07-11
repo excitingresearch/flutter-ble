@@ -399,8 +399,8 @@ class _DeviceScreenState extends State<DeviceScreen>
                     100; // Divide by 100 to get the original temperature.
 
                 List<String> rgbStrings = rgbString.split(',');
-                int _r = int.parse(rgbStrings[1]);
-                int _g = int.parse(rgbStrings[0]);
+                int _r = int.parse(rgbStrings[0]);
+                int _g = int.parse(rgbStrings[1]);
                 int _b = int.parse(rgbStrings[2]);
 
                 Color c = Color.fromARGB(255, _r, _g, _b);
