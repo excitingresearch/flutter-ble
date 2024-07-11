@@ -30,7 +30,7 @@ const String currentVersion = "20240711-0";
 const String appVersionURL = 'https://fgmnts.be/moody_version.txt';
 
 const String newVersionText =
-    'A newer version of the app is available. Please visit the website to download the latest APK.';
+    'A newer version of the app is available. Please visit https://excitingresearch.io/ to download the latest APK.';
 
 void main() {
   if (Platform.isAndroid) {
