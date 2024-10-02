@@ -15,7 +15,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //final String serverHost = '192.168.10.139:2000';
-const String serverHost = '134.122.18.168:2000';
+const String serverHost = '145.14.158.14:2000';
 
 class DeviceScreen extends StatefulWidget {
   const DeviceScreen({Key? key, required this.device, required this.deviceId})
