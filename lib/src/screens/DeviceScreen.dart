@@ -15,7 +15,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //final String serverHost = '192.168.10.139:2000';
-const String serverHost = '134.122.18.168:2000';
+const String serverHost = 'api.excitingresearch.io';
 
 class DeviceScreen extends StatefulWidget {
   const DeviceScreen({Key? key, required this.device, required this.deviceId})
@@ -358,7 +358,7 @@ class _DeviceScreenState extends State<DeviceScreen>
                 // cleanUpScanning();
                 if (serverOnline) {
                   final response = await http.get(
-                    Uri.http(serverHost, '/addData', {
+                    Uri.https(serverHost, '/addData', {
                       'moodid': widget.deviceId,
                       'temperature': localTemp.toStringAsFixed(2),
                       'battery': _bat.toStringAsFixed(2),
@@ -440,7 +440,7 @@ class _DeviceScreenState extends State<DeviceScreen>
                 if (serverOnline) {
                   try {
                     final response = await http.get(
-                      Uri.http(serverHost, '/addData', {
+                      Uri.https(serverHost, '/addData', {
                         'moodid': widget.deviceId,
                         'temperature': localTemp.toStringAsFixed(2),
                         'battery': _bat.toStringAsFixed(2),
