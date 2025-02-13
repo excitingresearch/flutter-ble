@@ -222,7 +222,7 @@ class _DeviceScreenState extends State<DeviceScreen>
     // scanForDevices();
     resetDevicesDataAndScan();
     connectToDevice();
-    makeRequest();
+    makePositionRequest();
   }
 
   void cleanUpScanning() async {
@@ -255,7 +255,7 @@ class _DeviceScreenState extends State<DeviceScreen>
     });
   }
 
-  void makeRequest() async {
+  void makePositionRequest() async {
     final url = Uri.parse('https://api-v4.excitingresearch.io/scan');
 
     final headers = {
@@ -354,6 +354,10 @@ class _DeviceScreenState extends State<DeviceScreen>
     discoverServices();
   }
 
+  String rgbToHex(int r, int g, int b) {
+    return '#${(r << 16 | g << 8 | b).toRadixString(16).padLeft(6, '0')}';
+  }
+
   discoverServices() async {
     List<BluetoothService> services = await widget.device.discoverServices();
     services.forEach((service) {
@@ -431,35 +435,76 @@ class _DeviceScreenState extends State<DeviceScreen>
 
                 // cleanUpScanning();
                 if (serverOnline) {
-                  final response = await http.get(
-                    Uri.https(serverHost, '/addData', {
-                      'moodid': widget.deviceId,
-                      'temperature': localTemp.toStringAsFixed(2),
-                      'battery': _bat.toStringAsFixed(2),
-                      'color': jsonEncode([_r, _g, _b]),
-                      'excitement': '0',
-                      'location': jsonEncode([
-                        _currentPosition?.latitude,
-                        _currentPosition?.longitude
-                      ]),
-                      'proximity': jsonEncode(deviceRssi.entries
-                          .map((entry) =>
-                              {'id': entry.key, 'distance': entry.value})
-                          .toList()),
-                      'gyro': jsonEncode(_gyroscopeValues),
-                    }),
-                  );
+                  final url =
+                      Uri.parse('https://api-v4.excitingresearch.io/avg-color');
 
-                  if (response.statusCode == 200) {
-                    // If the server returns a 200 OK response,
-                    // then parse the JSON.
-                    print('Response data: ${(response.body)}');
-                  } else {
-                    // If the server did not return a 200 OK response,
-                    // then throw an exception.
-                    serverOnline = false;
-                    throw Exception('Failed to get data.');
+                  final headers = {
+                    'accept': '*/*',
+                    'accept-language':
+                        'nl,nl-BE;q=0.9,nl-NL;q=0.8,en-US;q=0.7,en;q=0.6',
+                    'content-type': 'application/json',
+                    'origin': 'https://api-v4.excitingresearch.io',
+                    'priority': 'u=1, i',
+                    'referer': 'https://api-v4.excitingresearch.io/',
+                    'sec-ch-ua':
+                        '"Not A(Brand";v="8", "Chromium";v="132", "Google Chrome";v="132"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"',
+                    'sec-fetch-dest': 'empty',
+                    'sec-fetch-mode': 'cors',
+                    'sec-fetch-site': 'same-origin',
+                    'user-agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+                  };
+
+                  final body = jsonEncode({'color': rgbToHex(r, g, b)});
+
+                  try {
+                    final response =
+                        await http.post(url, headers: headers, body: body);
+
+                    if (response.statusCode == 200) {
+                      print('apitest Response: ${response.body}');
+
+                      // Log transformed positions
+                      // print('apitest Transformed Positions: $transformedPositions');
+                    } else {
+                      print('Failed with status code: ${response.statusCode}');
+                      print('Response: ${response.body}');
+                    }
+                  } catch (e) {
+                    print('Error: $e');
                   }
+
+                  // final response = await http.get(
+                  //   Uri.https(serverHost, '/addData', {
+                  //     'moodid': widget.deviceId,
+                  //     'temperature': localTemp.toStringAsFixed(2),
+                  //     'battery': _bat.toStringAsFixed(2),
+                  //     'color': jsonEncode([_r, _g, _b]),
+                  //     'excitement': '0',
+                  //     'location': jsonEncode([
+                  //       _currentPosition?.latitude,
+                  //       _currentPosition?.longitude
+                  //     ]),
+                  //     'proximity': jsonEncode(deviceRssi.entries
+                  //         .map((entry) =>
+                  //             {'id': entry.key, 'distance': entry.value})
+                  //         .toList()),
+                  //     'gyro': jsonEncode(_gyroscopeValues),
+                  //   }),
+                  // );
+
+                  // if (response.statusCode == 200) {
+                  //   // If the server returns a 200 OK response,
+                  //   // then parse the JSON.
+                  //   print('Response data: ${(response.body)}');
+                  // } else {
+                  //   // If the server did not return a 200 OK response,
+                  //   // then throw an exception.
+                  //   serverOnline = false;
+                  //   throw Exception('Failed to get data.');
+                  // }
                 }
                 print('>>> Try resetDevicesDataAndScan');
                 resetDevicesDataAndScan();
