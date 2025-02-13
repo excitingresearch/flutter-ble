@@ -9,6 +9,8 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:moody/main.dart';
 import 'package:moody/src/providers/DeviceProvider.dart';
 import 'package:provider/provider.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class EnrollDeviceScreen extends StatefulWidget {
   const EnrollDeviceScreen({Key? key}) : super(key: key);
