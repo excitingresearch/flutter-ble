@@ -19,9 +19,9 @@ dependencies:
   http: ^0.13.6
   intl: ^0.17.0
 
-  keep_screen_on: ^3.0.0
+  keep_screen_on: ^4.0.0
   location: ^5.0.2+1
-  permission_handler: ^10.4.3
+  permission_handler: ^11.4.0
   provider: ^6.1.2
   sensors_plus: ^3.0.3
   shared_preferences: ^2.2.3
