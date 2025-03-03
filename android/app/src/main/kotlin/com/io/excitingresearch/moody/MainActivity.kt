@@ -1,4 +1,4 @@
-package com.signify.hue.reactivebleexample
+package io.excitingresearch.moody
 
 
 import androidx.annotation.NonNull
