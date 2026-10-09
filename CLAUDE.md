@@ -28,6 +28,7 @@
 - GitHub (supportive): https://github.com/excitingresearch/index
 - Tasks: no list linked
 - NAS project: `/volume1/Library/projects/archive/commercial/moody`
+- NAS images: `/volume1/Library/images/project images/Moody images`
 - Drive (shared, owned by rhinojojojo@gmail.com): 1EEsXY-_jIGPBdENR0VUYWf4Z9TWJt8Kg https://drive.google.com/drive/folders/1EEsXY-_jIGPBdENR0VUYWf4Z9TWJt8Kg
 <!-- submanager:auto:end -->
 
@@ -64,6 +65,7 @@
 - GitHub (supportive): https://github.com/excitingresearch/index
 - Tasks: no list linked
 - NAS project: `/volume1/Library/projects/archive/commercial/moody`
+- NAS images: `/volume1/Library/images/project images/Moody images`
 - Drive (shared, owned by rhinojojojo@gmail.com): 1EEsXY-_jIGPBdENR0VUYWf4Z9TWJt8Kg https://drive.google.com/drive/folders/1EEsXY-_jIGPBdENR0VUYWf4Z9TWJt8Kg
 <!-- submanager:auto:end -->
 
